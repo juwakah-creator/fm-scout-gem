@@ -7,7 +7,7 @@ Simula il flusso completo: lettura CSV -> filtraggio -> calcolo punteggi -> norm
 import pandas as pd
 import numpy as np
 import goalkeeper
-import app
+import streamlit_app
 import sys
 
 
@@ -147,8 +147,8 @@ def test_app_integration():
     
     # Test process_analysis con modalità goalkeeper
     print("\n[2/3] Esecuzione process_analysis in modalità goalkeeper...")
-    result_html, debug_html = app.process_analysis(
-        df_processed, 'goalkeeper', 0, 100, 5, 40, 17
+    result_html, debug_html = streamlit_app.process_analysis(
+        df_processed, 0, 100, 5, 40, 17, False, False, False, False, False, False, True
     )
     
     assert isinstance(result_html, str), "result_html deve essere una stringa"
@@ -164,7 +164,7 @@ def test_app_integration():
     # Test con dati vuoti
     print("\n[3/3] Test con DataFrame vuoto...")
     empty_df = pd.DataFrame()
-    result, debug = app.process_analysis(empty_df, 'goalkeeper', 0, 50, 10, 30, 17)
+    result, debug = streamlit_app.process_analysis(empty_df, 0, 50, 10, 30, 17, False, False, False, False, False, False, True)
     assert "No data available" in result or "No goalkeepers found" in result
     print("      [OK] Gestione corretta dati vuoti")
     

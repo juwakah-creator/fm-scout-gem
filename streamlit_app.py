@@ -255,7 +255,7 @@ def main():
         
         # Read CSV
         try:
-            df = pd.read_csv(uploaded_file)
+            df = pd.read_csv(uploaded_file)  # type: ignore[arg-type]
         except Exception as e:
             st.error(f"❌ Error reading CSV: {str(e)}")
             st.stop()

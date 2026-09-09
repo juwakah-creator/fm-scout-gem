@@ -1,4 +1,3 @@
-```
 # Python
 __pycache__/
 *.pyc
@@ -21,4 +20,9 @@ __pycache__/
 # Dependencies
 .venv/
 venv/
-```
+
+# Test cache
+.pytest_cache/
+
+# Null file (Windows special)
+nul
