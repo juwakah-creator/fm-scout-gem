@@ -141,37 +141,53 @@ def process_analysis(df, min_price, price_threshold, min_apps, max_age, min_age,
         # COFF (Attacking Mid) - calculate_coff_score from coff.py
         if include_coff:
             filtered_df['_coff_score'] = filtered_df.apply(calculate_coff_score, axis=1)
-            role_scores['coff'] = '_coff_score'
+            # Add sub-scores for display
+            try:
+                from coff import compute_dimension_scores
+                coff_dims = compute_dimension_scores(filtered_df)
+                for col in coff_dims.columns:
+                    filtered_df[col] = coff_dims[col]
+            except Exception as e:
+                print(f"Warning: Could not compute COFF dimension scores: {e}")
+            role_scores['COFF'] = '_coff_score'
         
         # Striker - calculate_striker_score from strika.py
         if include_striker:
             filtered_df['_striker_score'] = filtered_df.apply(calculate_striker_score, axis=1)
-            role_scores['strika'] = '_striker_score'
+            role_scores['Striker'] = '_striker_score'
         
         # Goalkeeper - calculate_goalkeeper_score from goalkeeper.py
         if include_goalkeeper:
             filtered_df['_gk_score'] = filtered_df.apply(calculate_goalkeeper_score, axis=1)
-            role_scores['goalkeeper'] = '_gk_score'
+            # Add GK sub-scores
+            try:
+                from goalkeeper import compute_dimension_scores as gk_dims_func
+                gk_dims = gk_dims_func(filtered_df)
+                for col in gk_dims.columns:
+                    filtered_df[col] = gk_dims[col]
+            except Exception as e:
+                print(f"Warning: Could not compute GK dimension scores: {e}")
+            role_scores['Goalkeeper'] = '_gk_score'
         
         # Defensive Mid - calculate_defensive_score from defensive_mid.py
         if include_defensive_mid:
             filtered_df['_dm_score'] = filtered_df.apply(calculate_defensive_score, axis=1)
-            role_scores['defensive_mid'] = '_dm_score'
+            role_scores['DM'] = '_dm_score'
         
         # Defenders - calculate_defender_score from defenders.py
         if include_defenders:
             filtered_df['_def_score'] = filtered_df.apply(calculate_defender_score, axis=1)
-            role_scores['defenders'] = '_def_score'
+            role_scores['Defender'] = '_def_score'
         
         # Fullbacks - calculate_fullback_score from fullbacks.py
         if include_fullbacks:
             filtered_df['_fb_score'] = filtered_df.apply(calculate_fullback_score, axis=1)
-            role_scores['fullbacks'] = '_fb_score'
+            role_scores['Fullback'] = '_fb_score'
         
         # Winger - calculate_offensive_score from winger.py
         if include_winger:
             filtered_df['_winger_score'] = filtered_df.apply(calculate_offensive_score, axis=1)
-            role_scores['winger'] = '_winger_score'
+            role_scores['Winger'] = '_winger_score'
         
         if not role_scores:
             return None, None, "⚠️ No roles selected. Please enable at least one position filter."
@@ -306,15 +322,96 @@ def main():
         display_df['Name'] = sorted_df['Name']
         display_df['Club'] = sorted_df['Club']
         display_df['Age'] = sorted_df['_age']
-        display_df['Guide Value'] = sorted_df.apply(lambda row: f"€{row['_price']/1_000_000:.1f}M", axis=1)
+        
+        # Add Price in millions
+        display_df['Price (€M)'] = (sorted_df['_price'] / 1_000_000).round(2)
+        
+        # Add Value Index and Age Factor
         display_df['Value Index'] = sorted_df['Value Index'].round(2)
         display_df['Age Factor'] = sorted_df['Age Factor'].round(2)
         
-        # Add role-specific scores
+        # Add role-specific scores (total score)
         for role_name, score_col in role_scores.items():
             if score_col in sorted_df.columns:
-                display_name = role_name.replace('_', ' ').title()
+                display_name = f"{role_name} Score"
                 display_df[display_name] = sorted_df[score_col].round(2)
+        
+        # Add dimension/sub-scores for roles that have them
+        # COFF dimensions
+        if include_coff:
+            dim_cols = ['finalizzazione_score', 'creazione_score', 'dribbling_score', 'pressing_score', 'attacco_score']
+            for col in dim_cols:
+                if col in sorted_df.columns:
+                    display_name = col.replace('_score', '').title()
+                    display_df[f'COFF {display_name}'] = sorted_df[col].round(2)
+        
+        # Goalkeeper dimensions
+        if include_goalkeeper:
+            gk_dim_cols = ['shot_stopping_score', 'distribution_score', 'aerial_command_score', 'reflexes_score', 'gk_overall_score']
+            for col in gk_dim_cols:
+                if col in sorted_df.columns:
+                    display_name = col.replace('_score', '').replace('_', ' ').title()
+                    display_df[f'GK {display_name}'] = sorted_df[col].round(2)
+        
+        # Add key advanced stats based on enabled roles
+        cm = detect_columns(df)
+        
+        # Common attacking stats
+        if include_coff or include_striker or include_winger:
+            if 'xG' in cm and cm['xG'] in sorted_df.columns:
+                display_df['xG'] = sorted_df[cm['xG']].round(2)
+            if 'xA' in cm and cm['xA'] in sorted_df.columns:
+                display_df['xA'] = sorted_df[cm['xA']].round(2)
+            if 'Key Passes' in cm and cm['Key Passes'] in sorted_df.columns:
+                display_df['Key Passes'] = sorted_df[cm['Key Passes']].round(1)
+        
+        # Striker specific
+        if include_striker:
+            if 'Shots on Target' in cm and cm['Shots on Target'] in sorted_df.columns:
+                display_df['SoT'] = sorted_df[cm['Shots on Target']].round(1)
+            if 'Conversion Rate' in cm and cm['Conversion Rate'] in sorted_df.columns:
+                display_df['Conv%'] = sorted_df[cm['Conversion Rate']].round(1)
+        
+        # Winger specific
+        if include_winger:
+            if 'Successful Dribbles' in cm and cm['Successful Dribbles'] in sorted_df.columns:
+                display_df['Dribbles'] = sorted_df[cm['Successful Dribbles']].round(1)
+            if 'Crosses Accuracy' in cm and cm['Crosses Accuracy'] in sorted_df.columns:
+                display_df['Cross%'] = sorted_df[cm['Crosses Accuracy']].round(1)
+        
+        # Defensive Mid specific
+        if include_defensive_mid:
+            if 'Tackles' in cm and cm['Tackles'] in sorted_df.columns:
+                display_df['Tackles'] = sorted_df[cm['Tackles']].round(1)
+            if 'Interceptions' in cm and cm['Interceptions'] in sorted_df.columns:
+                display_df['Interceptions'] = sorted_df[cm['Interceptions']].round(1)
+            if 'Pass Completion%' in cm and cm['Pass Completion%'] in sorted_df.columns:
+                display_df['Pass%'] = sorted_df[cm['Pass Completion%']].round(1)
+        
+        # Defender specific
+        if include_defenders:
+            if 'Clearances' in cm and cm['Clearances'] in sorted_df.columns:
+                display_df['Clearances'] = sorted_df[cm['Clearances']].round(1)
+            if 'Blocks' in cm and cm['Blocks'] in sorted_df.columns:
+                display_df['Blocks'] = sorted_df[cm['Blocks']].round(1)
+            if 'Aerial Duels Won%' in cm and cm['Aerial Duels Won%'] in sorted_df.columns:
+                display_df['Aerial%'] = sorted_df[cm['Aerial Duels Won%']].round(1)
+        
+        # Fullback specific
+        if include_fullbacks:
+            if 'Assists' in cm and cm['Assists'] in sorted_df.columns:
+                display_df['Assists'] = sorted_df[cm['Assists']].round(1)
+            if 'Tackles' in cm and cm['Tackles'] in sorted_df.columns:
+                display_df['Tackles'] = sorted_df[cm['Tackles']].round(1)
+        
+        # Goalkeeper specific
+        if include_goalkeeper:
+            if 'Save%' in cm and cm['Save%'] in sorted_df.columns:
+                display_df['Save%'] = sorted_df[cm['Save%']].round(1)
+            if 'Clean Sheets' in cm and cm['Clean Sheets'] in sorted_df.columns:
+                display_df['Clean Sheets'] = sorted_df[cm['Clean Sheets']].round(0)
+            if 'Goals Conceded' in cm and cm['Goals Conceded'] in sorted_df.columns:
+                display_df['GC'] = sorted_df[cm['Goals Conceded']].round(0)
         
         # Display main results table
         st.subheader("📊 Top Players by Value Index")
