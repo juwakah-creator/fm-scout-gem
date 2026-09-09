@@ -32,7 +32,7 @@ DARK_MODE_CSS = """
 }
 """
 
-# CSS for scrollable table containers
+# CSS for scrollable table containers and sortable tables
 TABLE_CSS = """
 /* Scrollable container for wide tables */
 .scrollable-table-container {
@@ -76,6 +76,19 @@ TABLE_CSS = """
     border: 1px solid #30363d !important;
     padding: 8px 12px !important;
     white-space: nowrap !important;
+    cursor: pointer !important;
+    user-select: none !important;
+}
+.custom-table th:hover {
+    background-color: #1f2937 !important;
+}
+.custom-table th.sort-asc::after {
+    content: " ▲";
+    font-size: 10px;
+}
+.custom-table th.sort-desc::after {
+    content: " ▼";
+    font-size: 10px;
 }
 .custom-table td {
     background-color: #161b22 !important;
@@ -108,6 +121,67 @@ TABLE_CSS = """
     border: 1px solid #3fb950;
     color: #3fb950;
 }
+"""
+
+# JavaScript for sortable tables
+SORTABLE_TABLE_JS = """
+<script>
+(function() {
+    function makeTableSortable(table) {
+        if (!table || table.dataset.sortable === 'true') return;
+        table.dataset.sortable = 'true';
+        
+        const headers = table.querySelectorAll('th');
+        headers.forEach((header, index) => {
+            // Skip index column (first th)
+            if (index === 0) return;
+            
+            header.style.cursor = 'pointer';
+            header.addEventListener('click', () => {
+                const tbody = table.querySelector('tbody');
+                if (!tbody) return;
+                
+                const rows = Array.from(tbody.querySelectorAll('tr'));
+                const isNumeric = !isNaN(rows[0]?.cells[index]?.innerText.replace(/[^0-9.-]/g, ''));
+                
+                // Toggle sort direction
+                const currentAsc = header.classList.contains('sort-asc');
+                const sortAsc = !currentAsc;
+                
+                // Remove sort classes from all headers
+                headers.forEach(h => h.classList.remove('sort-asc', 'sort-desc'));
+                header.classList.add(sortAsc ? 'sort-asc' : 'sort-desc');
+                
+                // Sort rows
+                rows.sort((a, b) => {
+                    const aVal = a.cells[index]?.innerText.trim();
+                    const bVal = b.cells[index]?.innerText.trim();
+                    
+                    if (isNumeric) {
+                        const aNum = parseFloat(aVal.replace(/[^0-9.-]/g, '')) || 0;
+                        const bNum = parseFloat(bVal.replace(/[^0-9.-]/g, '')) || 0;
+                        return sortAsc ? aNum - bNum : bNum - aNum;
+                    } else {
+                        return sortAsc ? aVal.localeCompare(bVal) : bVal.localeCompare(aVal);
+                    }
+                });
+                
+                // Re-append sorted rows
+                rows.forEach(row => tbody.appendChild(row));
+            });
+        });
+    }
+    
+    // Make all tables sortable
+    document.querySelectorAll('.custom-table table').forEach(makeTableSortable);
+    
+    // Also handle dynamically added tables
+    const observer = new MutationObserver(() => {
+        document.querySelectorAll('.custom-table table').forEach(makeTableSortable);
+    });
+    observer.observe(document.body, { childList: true, subtree: true });
+})();
+</script>
 """
 
 def create_app():
@@ -275,36 +349,39 @@ def create_app():
                 if score_col in sorted_df.columns:
                     result_out[role_name] = sorted_df[score_col].round(2)
             
-            # Create HTML table with scrollable container wrapper
+            # Create HTML table with scrollable container wrapper - include index as first column
             html_table = f"""<div class="scrollable-table-container">
 <table class="custom-table">
-{sorted_df.to_html(classes='', border=0, index=False)}
+{sorted_df.to_html(classes='', border=0, index=True)}
 </table>
 </div>"""
             
-            # Debug info
+            # Debug info - also include index
             debug_df = sorted_df[['Name', 'Value Index']].copy()
             debug_df['Value Index'] = debug_df['Value Index'].round(2)
-            debug_html = f"<div class='scrollable-table-container'><table>{debug_df.to_html(classes='custom-table', border=0, index=False)}</table></div>"
+            debug_html = f"<div class='scrollable-table-container'><table>{debug_df.to_html(classes='custom-table', border=0, index=True)}</table></div>"
             
             # Info text
             roles_enabled = [name for name, col in role_scores.items()]
             info_text = f"✅ Found {len(sorted_df)} players matching your criteria (Price: €{min_price:.0f}M-€{price_threshold:.0f}M, Age: {min_age}-{max_age}, Apps: ≥{min_apps})\nRoles: {', '.join(roles_enabled)}"
             
-            return html_table, debug_html, info_text
+            return html_table, debug_html, info_text, filtered_df, role_scores
             
         except Exception as e:
             import traceback
             error_detail = traceback.format_exc()
             print(f"Error in process_analysis: {e}")
             print(error_detail)
-            return f"<div class='info-box info'>❌ Error processing file: {str(e)}</div>", "", ""
+            return f"<div class='info-box info'>❌ Error processing file: {str(e)}</div>", "", None, None, {}
     
     # Create the Gradio interface
     with gr.Blocks(title="FM Scout Gem - Football Manager Scout") as app:
         
         gr.Markdown("# ⚽ FM Scout Gem")
         gr.Markdown("### Advanced Football Manager Player Scout Tool")
+        
+        # State to store filtered dataframe for leaderboard feature
+        filtered_df_state = gr.State(value=None)
         
         with gr.Row():
             # Left column for file upload and filters
@@ -357,13 +434,87 @@ def create_app():
                 result_output = gr.HTML(label="Results", value="<div class='info-box info'>Upload a CSV file and click Analyze to see results.</div>")
                 debug_output = gr.HTML(label="Debug Info (Value Index)", value="")
         
+        # Leaderboard section - clickable buttons for each stat category
+        gr.Markdown("### 🏆 Statistic Leaders - Click on a table to see the top players")
+        
+        with gr.Row():
+            leaderboard_coff = gr.HTML(label="COFF Leaders", value="<div class='info-box info'>Click Analyze first to see COFF leaders</div>")
+            leaderboard_striker = gr.HTML(label="Striker Leaders", value="<div class='info-box info'>Click Analyze first to see Striker leaders</div>")
+        
+        with gr.Row():
+            leaderboard_winger = gr.HTML(label="Winger Leaders", value="<div class='info-box info'>Click Analyze first to see Winger leaders</div>")
+            leaderboard_defensive_mid = gr.HTML(label="Defensive Mid Leaders", value="<div class='info-box info'>Click Analyze first to see Defensive Mid leaders</div>")
+        
+        with gr.Row():
+            leaderboard_defenders = gr.HTML(label="Defender Leaders", value="<div class='info-box info'>Click Analyze first to see Defender leaders</div>")
+            leaderboard_fullbacks = gr.HTML(label="Fullback Leaders", value="<div class='info-box info'>Click Analyze first to see Fullback leaders</div>")
+        
+        with gr.Row():
+            leaderboard_goalkeeper = gr.HTML(label="Goalkeeper Leaders", value="<div class='info-box info'>Click Analyze first to see Goalkeeper leaders</div>")
+        
+        # Hidden state to store all role scores data
+        role_scores_state = gr.State(value={})
+        
         # Event handlers - pass all checkbox states
+        def update_leaderboards(filtered_df, role_scores):
+            """Update all leaderboard tables based on filtered data."""
+            if filtered_df is None or len(filtered_df) == 0:
+                return ["<div class='info-box info'>No data available</div>"] * 7
+            
+            leaderboards = {}
+            role_display_names = {
+                'coff': ('COFF (Attacking Mid)', '_coff_score'),
+                'strika': ('Striker', '_striker_score'),
+                'winger': ('Winger', '_winger_score'),
+                'defensive_mid': ('Defensive Mid', '_dm_score'),
+                'defenders': ('Defender', '_def_score'),
+                'fullbacks': ('Fullback', '_fb_score'),
+                'goalkeeper': ('Goalkeeper', '_gk_score')
+            }
+            
+            for role_key, (display_name, score_col) in role_display_names.items():
+                if score_col in filtered_df.columns and len(filtered_df) > 0:
+                    # Sort by this role's score and get top 10
+                    sorted_by_role = filtered_df.sort_values(score_col, ascending=False).head(10)
+                    
+                    # Create leaderboard table
+                    leaderboard_df = pd.DataFrame()
+                    leaderboard_df['Rank'] = range(1, len(sorted_by_role) + 1)
+                    leaderboard_df['Player'] = sorted_by_role['Name'].values
+                    leaderboard_df['Club'] = sorted_by_role['Club'].values
+                    leaderboard_df['Age'] = sorted_by_role['_age'].values
+                    leaderboard_df[display_name] = sorted_by_role[score_col].round(2).values
+                    
+                    leaderboards[role_key] = f"""<div class="scrollable-table-container">
+<table class="custom-table">
+{leaderboard_df.to_html(classes='', border=0, index=False)}
+</table>
+</div>"""
+                else:
+                    leaderboards[role_key] = "<div class='info-box info'>Role not enabled or no data</div>"
+            
+            return [
+                leaderboards.get('coff', "<div class='info-box info'>No data</div>"),
+                leaderboards.get('strika', "<div class='info-box info'>No data</div>"),
+                leaderboards.get('winger', "<div class='info-box info'>No data</div>"),
+                leaderboards.get('defensive_mid', "<div class='info-box info'>No data</div>"),
+                leaderboards.get('defenders', "<div class='info-box info'>No data</div>"),
+                leaderboards.get('fullbacks', "<div class='info-box info'>No data</div>"),
+                leaderboards.get('goalkeeper', "<div class='info-box info'>No data</div>")
+            ]
+        
         analyze_btn.click(
             fn=process_analysis,
             inputs=[csv_input, min_price, price_threshold, min_apps, max_age, min_age,
                     pos_coff, pos_striker, pos_winger, pos_defenders,
                     pos_defensive_mid, pos_fullbacks, pos_gk],
-            outputs=[result_output, debug_output]
+            outputs=[result_output, debug_output, filtered_df_state, role_scores_state]
+        ).then(
+            fn=update_leaderboards,
+            inputs=[filtered_df_state, role_scores_state],
+            outputs=[leaderboard_coff, leaderboard_striker, leaderboard_winger, 
+                     leaderboard_defensive_mid, leaderboard_defenders, leaderboard_fullbacks, 
+                     leaderboard_goalkeeper]
         )
         
         # Example info
@@ -389,6 +540,8 @@ def create_app():
             - Dark mode UI for comfortable viewing
             - Value Index calculation based on performance vs price
             - Role-specific scoring with correct coefficients
+            - **Index column** visible in all statistics tables
+            - **Sortable tables**: Click on any column header to sort ascending/descending
             """)
     
     return app
@@ -401,7 +554,8 @@ def launch_app():
         server_port=7861,
         show_error=True,
         share=False,
-        css=DARK_MODE_CSS + TABLE_CSS
+        css=DARK_MODE_CSS + TABLE_CSS,
+        head=SORTABLE_TABLE_JS
     )
 
 if __name__ == "__main__":
