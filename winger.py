@@ -110,69 +110,64 @@ def calculate_offensive_score(row):
     """
     
     # === OFFENSIVE METRICS (pesi elevati) ===
-    goal_contributions_p90 = row.get('Goal Contributions per 90', np.nan)
-    xg_p90 = row.get('xG per 90', np.nan)
-    xa_p90 = row.get('xA per 90', np.nan)
-    np_xg_p90 = row.get('NP-xG per 90', np.nan)
-    dribbling_p90 = row.get('Dribbling completati per 90', np.nan)
-    shots_targeted_p90 = row.get('Shots on Target per 90', np.nan)
-    key_passes_p90 = row.get('Key Passes per 90', np.nan)
-    attacking_actions_p90 = row.get('Attacking Actions per 90', np.nan)
-    passaggi_progressivi_p90 = row.get('Passaggi progressivi per 90', np.nan)
-    cross_riusciti_p90 = row.get('Cross riusciti per 90', np.nan)
-    xg_overperformance = row.get('xG Overperformance', np.nan)
+    goal_contributions_p90 = pd.to_numeric(row.get('Goal Contributions per 90', np.nan), errors='coerce')
+    xg_p90 = pd.to_numeric(row.get('xG per 90', np.nan), errors='coerce')
+    xa_p90 = pd.to_numeric(row.get('xA per 90', np.nan), errors='coerce')
+    np_xg_p90 = pd.to_numeric(row.get('NP-xG per 90', np.nan), errors='coerce')
+    dribbling_p90 = pd.to_numeric(row.get('Dribbling completati per 90', np.nan), errors='coerce')
+    shots_targeted_p90 = pd.to_numeric(row.get('Shots on Target per 90', np.nan), errors='coerce')
+    key_passes_p90 = pd.to_numeric(row.get('Key Passes per 90', np.nan), errors='coerce')
+    attacking_actions_p90 = pd.to_numeric(row.get('Attacking Actions per 90', np.nan), errors='coerce')
+    passaggi_progressivi_p90 = pd.to_numeric(row.get('Passaggi progressivi per 90', np.nan), errors='coerce')
+    cross_riusciti_p90 = pd.to_numeric(row.get('Cross riusciti per 90', np.nan), errors='coerce')
+    xg_overperformance = pd.to_numeric(row.get('xG Overperformance', np.nan), errors='coerce')
     
     # === DEFENSIVE METRICS (pesi moderati/bassi) ===
-    pressures_attempted_p90 = row.get('Pressures Attempted per 90', np.nan)
-    possession_won_p90 = row.get('Possession Won per 90', np.nan)
-    pressing_efficiency = row.get('Pressing Efficiency', np.nan)
-    header_win_pct = row.get('Header Win %', np.nan)
+    pressures_attempted_p90 = pd.to_numeric(row.get('Pressures Attempted per 90', np.nan), errors='coerce')
+    possession_won_p90 = pd.to_numeric(row.get('Possession Won per 90', np.nan), errors='coerce')
+    pressing_efficiency = pd.to_numeric(row.get('Pressing Efficiency', np.nan), errors='coerce')
+    header_win_pct = pd.to_numeric(row.get('Header Win %', np.nan), errors='coerce')
     
     # Initialize score with a base value of 0
     offensive_score = 0.0
     
     # === OFFENSIVE WEIGHTS (elevati) ===
     if not pd.isna(goal_contributions_p90):
-        offensive_score += goal_contributions_p90 * 2.0
+        offensive_score += float(goal_contributions_p90) * 2.0
     if not pd.isna(xg_p90):
-        offensive_score += xg_p90 * 2.0
+        offensive_score += float(xg_p90) * 2.0
     if not pd.isna(xa_p90):
-        offensive_score += xa_p90 * 2.0
+        offensive_score += float(xa_p90) * 2.0
     if not pd.isna(np_xg_p90):
-        offensive_score += np_xg_p90 * 1.5
+        offensive_score += float(np_xg_p90) * 1.5
     
     # Metriche con peso aumentato (1.6x per dribbling, 1.5x per key passes)
     if not pd.isna(dribbling_p90):
-        offensive_score += dribbling_p90 * 1.6  # Aumentato da 1.2 a 1.6
+        offensive_score += float(dribbling_p90) * 1.6  # Aumentato da 1.2 a 1.6
     if not pd.isna(shots_targeted_p90):
-        offensive_score += shots_targeted_p90 * 1.0
+        offensive_score += float(shots_targeted_p90) * 1.0
     if not pd.isna(key_passes_p90):
-        offensive_score += key_passes_p90 * 1.5  # Uniformato e aumentato da 1.0 a 1.5
+        offensive_score += float(key_passes_p90) * 1.5  # Uniformato e aumentato da 1.0 a 1.5
     if not pd.isna(attacking_actions_p90):
-        offensive_score += attacking_actions_p90 * 1.0
+        offensive_score += float(attacking_actions_p90) * 1.0
     if not pd.isna(passaggi_progressivi_p90):
-        offensive_score += passaggi_progressivi_p90 * 1.0  # [NUOVA]
+        offensive_score += float(passaggi_progressivi_p90) * 1.0  # [NUOVA]
     if not pd.isna(cross_riusciti_p90):
-        offensive_score += cross_riusciti_p90 * 1.8  # Aumentato da 1.0 a 1.8 per enfatizzare i cross
+        offensive_score += float(cross_riusciti_p90) * 1.8  # Aumentato da 1.0 a 1.8 per enfatizzare i cross
     
     # xG Overperformance: ridotto da 2.0 a 0.5 per evitare rumore statistico
-    if not pd.isna(xg_overperformance):
-        try:
-            xg_overperformance = float(xg_overperformance)
-            if xg_overperformance > 0:
-                offensive_score += xg_overperformance * 0.5  # Aggiornato da 2.0 a 0.5
-        except (ValueError, TypeError):
-            pass
+    if not pd.isna(xg_overperformance) and xg_overperformance > 0:
+        offensive_score += float(xg_overperformance) * 0.5  # Aggiornato da 2.0 a 0.5
     
     # === DEFENSIVE WEIGHTS (moderati/bassi) ===
     if not pd.isna(pressures_attempted_p90):
-        offensive_score += pressures_attempted_p90 * 0.4  # [NUOVA]
+        offensive_score += float(pressures_attempted_p90) * 0.4  # [NUOVA]
     if not pd.isna(possession_won_p90):
-        offensive_score += possession_won_p90 * 0.3  # [NUOVA]
+        offensive_score += float(possession_won_p90) * 0.3  # [NUOVA]
     if not pd.isna(pressing_efficiency):
-        offensive_score += pressing_efficiency * 0.2  # [NUOVA]
+        offensive_score += float(pressing_efficiency) * 0.2  # [NUOVA]
     if not pd.isna(header_win_pct):
-        offensive_score += header_win_pct * 0.1  # Esistente (nuova categoria)
+        offensive_score += float(header_win_pct) * 0.1  # Esistente (nuova categoria)
         
     return offensive_score
 
