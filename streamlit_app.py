@@ -116,9 +116,9 @@ def process_analysis(df, min_price, price_threshold, min_apps, max_age, min_age,
         
         # Parse Guide Value to numeric _price in €
         df = df.copy()
-        df['_price'] = df[cm['Guide Value']].apply(parse_value)
-        df['_age'] = pd.to_numeric(df[cm['Age']], errors='coerce')
-        df['_apps'] = pd.to_numeric(df[cm['Appearances']], errors='coerce')
+        df['_price'] = df[cm['Guide Value']].apply(parse_value).fillna(0)
+        df['_age'] = pd.to_numeric(df[cm['Age']], errors='coerce').fillna(0)
+        df['_apps'] = pd.to_numeric(df[cm['Appearances']], errors='coerce').fillna(0)
         
         # Apply filters (prices in millions, convert to € for filtering)
         min_price_euros = min_price * 1_000_000
