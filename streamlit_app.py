@@ -353,65 +353,123 @@ def main():
                     display_name = col.replace('_score', '').replace('_', ' ').title()
                     display_df[f'GK {display_name}'] = sorted_df[col].round(2)
         
-        # Add key advanced stats based on enabled roles
+        # Add key advanced stats based on enabled roles - ONLY stats used in score calculations
         cm = detect_columns(df)
         
-        # Common attacking stats
-        if include_coff or include_striker or include_winger:
-            if 'xG' in cm and cm['xG'] in sorted_df.columns:
-                display_df['xG'] = sorted_df[cm['xG']].round(2)
-            if 'xA' in cm and cm['xA'] in sorted_df.columns:
-                display_df['xA'] = sorted_df[cm['xA']].round(2)
-            if 'Key Passes' in cm and cm['Key Passes'] in sorted_df.columns:
-                display_df['Key Passes'] = sorted_df[cm['Key Passes']].round(1)
+        # COFF specific - stats used in calculate_coff_score
+        if include_coff:
+            if 'xA per 90' in sorted_df.columns:
+                display_df['xA/90'] = sorted_df['xA per 90'].round(2)
+            if 'Key Passes per 90' in sorted_df.columns:
+                display_df['KP/90'] = sorted_df['Key Passes per 90'].round(2)
+            if 'Goal Contributions per 90' in sorted_df.columns:
+                display_df['GC/90'] = sorted_df['Goal Contributions per 90'].round(2)
+            if 'Passaggi progressivi per 90' in sorted_df.columns:
+                display_df['ProgPass/90'] = sorted_df['Passaggi progressivi per 90'].round(2)
+            if 'xG per 90' in sorted_df.columns:
+                display_df['xG/90'] = sorted_df['xG per 90'].round(2)
+            if 'Dribbling completati per 90' in sorted_df.columns:
+                display_df['Drib/90'] = sorted_df['Dribbling completati per 90'].round(2)
         
-        # Striker specific
+        # Striker specific - stats used in calculate_striker_score
         if include_striker:
-            if 'Shots on Target' in cm and cm['Shots on Target'] in sorted_df.columns:
-                display_df['SoT'] = sorted_df[cm['Shots on Target']].round(1)
-            if 'Conversion Rate' in cm and cm['Conversion Rate'] in sorted_df.columns:
-                display_df['Conv%'] = sorted_df[cm['Conversion Rate']].round(1)
+            if 'Goal Contributions per 90' in sorted_df.columns:
+                display_df['GC/90'] = sorted_df['Goal Contributions per 90'].round(2)
+            if 'NP-xG per 90' in sorted_df.columns:
+                display_df['NP-xG/90'] = sorted_df['NP-xG per 90'].round(2)
+            if 'xG per 90' in sorted_df.columns:
+                display_df['xG/90'] = sorted_df['xG per 90'].round(2)
+            if 'Shots on Target per 90' in sorted_df.columns:
+                display_df['SoT/90'] = sorted_df['Shots on Target per 90'].round(2)
+            if 'xA per 90' in sorted_df.columns:
+                display_df['xA/90'] = sorted_df['xA per 90'].round(2)
+            if 'Key Passes per 90' in sorted_df.columns:
+                display_df['KP/90'] = sorted_df['Key Passes per 90'].round(2)
         
-        # Winger specific
+        # Winger specific - stats used in calculate_offensive_score
         if include_winger:
-            if 'Successful Dribbles' in cm and cm['Successful Dribbles'] in sorted_df.columns:
-                display_df['Dribbles'] = sorted_df[cm['Successful Dribbles']].round(1)
-            if 'Crosses Accuracy' in cm and cm['Crosses Accuracy'] in sorted_df.columns:
-                display_df['Cross%'] = sorted_df[cm['Crosses Accuracy']].round(1)
+            if 'Goal Contributions per 90' in sorted_df.columns:
+                display_df['GC/90'] = sorted_df['Goal Contributions per 90'].round(2)
+            if 'xG per 90' in sorted_df.columns:
+                display_df['xG/90'] = sorted_df['xG per 90'].round(2)
+            if 'xA per 90' in sorted_df.columns:
+                display_df['xA/90'] = sorted_df['xA per 90'].round(2)
+            if 'NP-xG per 90' in sorted_df.columns:
+                display_df['NP-xG/90'] = sorted_df['NP-xG per 90'].round(2)
+            if 'Dribbling completati per 90' in sorted_df.columns:
+                display_df['Drib/90'] = sorted_df['Dribbling completati per 90'].round(2)
+            if 'Cross riusciti per 90' in sorted_df.columns:
+                display_df['Cross/90'] = sorted_df['Cross riusciti per 90'].round(2)
+            if 'Key Passes per 90' in sorted_df.columns:
+                display_df['KP/90'] = sorted_df['Key Passes per 90'].round(2)
         
-        # Defensive Mid specific
+        # Defensive Mid specific - stats used in calculate_defensive_score
         if include_defensive_mid:
-            if 'Tackles' in cm and cm['Tackles'] in sorted_df.columns:
-                display_df['Tackles'] = sorted_df[cm['Tackles']].round(1)
-            if 'Interceptions' in cm and cm['Interceptions'] in sorted_df.columns:
-                display_df['Interceptions'] = sorted_df[cm['Interceptions']].round(1)
-            if 'Pass Completion%' in cm and cm['Pass Completion%'] in sorted_df.columns:
-                display_df['Pass%'] = sorted_df[cm['Pass Completion%']].round(1)
+            if 'Tackles per 90' in sorted_df.columns:
+                display_df['Tack/90'] = sorted_df['Tackles per 90'].round(2)
+            if 'Interceptions per 90' in sorted_df.columns:
+                display_df['Int/90'] = sorted_df['Interceptions per 90'].round(2)
+            if 'Pass Completion %' in sorted_df.columns:
+                display_df['Pass%'] = sorted_df['Pass Completion %'].round(1)
+            if 'Progressive Passes per 90' in sorted_df.columns:
+                display_df['ProgPass/90'] = sorted_df['Progressive Passes per 90'].round(2)
+            if 'Pressures Attempted per 90' in sorted_df.columns:
+                display_df['Press/90'] = sorted_df['Pressures Attempted per 90'].round(2)
+            if 'Possession Won per 90' in sorted_df.columns:
+                display_df['PossWon/90'] = sorted_df['Possession Won per 90'].round(2)
+            if 'Header Win %' in sorted_df.columns:
+                display_df['Header%'] = sorted_df['Header Win %'].round(1)
         
-        # Defender specific
+        # Defender specific - stats used in calculate_defender_score
         if include_defenders:
-            if 'Clearances' in cm and cm['Clearances'] in sorted_df.columns:
-                display_df['Clearances'] = sorted_df[cm['Clearances']].round(1)
-            if 'Blocks' in cm and cm['Blocks'] in sorted_df.columns:
-                display_df['Blocks'] = sorted_df[cm['Blocks']].round(1)
-            if 'Aerial Duels Won%' in cm and cm['Aerial Duels Won%'] in sorted_df.columns:
-                display_df['Aerial%'] = sorted_df[cm['Aerial Duels Won%']].round(1)
+            if 'Defensive Actions per 90' in sorted_df.columns:
+                display_df['DefAct/90'] = sorted_df['Defensive Actions per 90'].round(2)
+            if 'Tackles per 90' in sorted_df.columns:
+                display_df['Tack/90'] = sorted_df['Tackles per 90'].round(2)
+            if 'Interceptions per 90' in sorted_df.columns:
+                display_df['Int/90'] = sorted_df['Interceptions per 90'].round(2)
+            if 'Clearances per 90' in sorted_df.columns:
+                display_df['Clear/90'] = sorted_df['Clearances per 90'].round(2)
+            if 'Blocks per 90' in sorted_df.columns:
+                display_df['Block/90'] = sorted_df['Blocks per 90'].round(2)
+            if 'Progressive Passes per 90' in sorted_df.columns:
+                display_df['ProgPass/90'] = sorted_df['Progressive Passes per 90'].round(2)
+            if 'Header Win %' in sorted_df.columns:
+                display_df['Header%'] = sorted_df['Header Win %'].round(1)
         
-        # Fullback specific
+        # Fullback specific - stats used in calculate_fullback_score
         if include_fullbacks:
-            if 'Assists' in cm and cm['Assists'] in sorted_df.columns:
-                display_df['Assists'] = sorted_df[cm['Assists']].round(1)
-            if 'Tackles' in cm and cm['Tackles'] in sorted_df.columns:
-                display_df['Tackles'] = sorted_df[cm['Tackles']].round(1)
+            if 'Defensive Actions per 90' in sorted_df.columns:
+                display_df['DefAct/90'] = sorted_df['Defensive Actions per 90'].round(2)
+            if 'Possession Won per 90' in sorted_df.columns:
+                display_df['PossWon/90'] = sorted_df['Possession Won per 90'].round(2)
+            if 'xA per 90' in sorted_df.columns:
+                display_df['xA/90'] = sorted_df['xA per 90'].round(2)
+            if 'Key Passes per 90' in sorted_df.columns:
+                display_df['KP/90'] = sorted_df['Key Passes per 90'].round(2)
+            if 'Progressive Passes per 90' in sorted_df.columns:
+                display_df['ProgPass/90'] = sorted_df['Progressive Passes per 90'].round(2)
+            if 'Crosses Completed' in sorted_df.columns:
+                display_df['CrossComp'] = sorted_df['Crosses Completed'].round(1)
+            if 'Dribbles per 90' in sorted_df.columns:
+                display_df['Drib/90'] = sorted_df['Dribbles per 90'].round(2)
         
-        # Goalkeeper specific
+        # Goalkeeper specific - stats used in calculate_goalkeeper_score
         if include_goalkeeper:
-            if 'Save%' in cm and cm['Save%'] in sorted_df.columns:
-                display_df['Save%'] = sorted_df[cm['Save%']].round(1)
-            if 'Clean Sheets' in cm and cm['Clean Sheets'] in sorted_df.columns:
-                display_df['Clean Sheets'] = sorted_df[cm['Clean Sheets']].round(0)
-            if 'Goals Conceded' in cm and cm['Goals Conceded'] in sorted_df.columns:
-                display_df['GC'] = sorted_df[cm['Goals Conceded']].round(0)
+            if 'Save Percentage %' in sorted_df.columns:
+                display_df['Save%'] = sorted_df['Save Percentage %'].round(1)
+            if 'Clean Sheets %' in sorted_df.columns:
+                display_df['CS%'] = sorted_df['Clean Sheets %'].round(1)
+            if 'Goals Conceded per 90' in sorted_df.columns:
+                display_df['GC/90'] = sorted_df['Goals Conceded per 90'].round(2)
+            if 'Saves per 90' in sorted_df.columns:
+                display_df['Saves/90'] = sorted_df['Saves per 90'].round(2)
+            if 'Pass Completion %' in sorted_df.columns:
+                display_df['Pass%'] = sorted_df['Pass Completion %'].round(1)
+            if 'Progressive Passes per 90' in sorted_df.columns:
+                display_df['ProgPass/90'] = sorted_df['Progressive Passes per 90'].round(2)
+            if 'Crosses Claimed %' in sorted_df.columns:
+                display_df['CrossClaim%'] = sorted_df['Crosses Claimed %'].round(1)
         
         # Display main results table
         st.subheader("📊 Top Players by Value Index")
@@ -453,19 +511,19 @@ def main():
         tabs = []
         tab_names = []
         
-        if 'coff' in role_scores:
+        if include_coff:
             tab_names.append("COFF")
-        if 'strika' in role_scores:
+        if include_striker:
             tab_names.append("Striker")
-        if 'winger' in role_scores:
+        if include_winger:
             tab_names.append("Winger")
-        if 'defensive_mid' in role_scores:
+        if include_defensive_mid:
             tab_names.append("Def Mid")
-        if 'defenders' in role_scores:
+        if include_defenders:
             tab_names.append("Defender")
-        if 'fullbacks' in role_scores:
+        if include_fullbacks:
             tab_names.append("Fullback")
-        if 'goalkeeper' in role_scores:
+        if include_goalkeeper:
             tab_names.append("GK")
         
         if tab_names:
@@ -473,57 +531,57 @@ def main():
             
             tab_idx = 0
             
-            if 'coff' in role_scores:
+            if include_coff:
                 with tabs[tab_idx]:
-                    score_col = role_scores['coff']
+                    score_col = role_scores['COFF']
                     leaderboard_df = sorted_df.sort_values(score_col, ascending=False)[['Name', 'Club', '_age', score_col]].head(20).reset_index(drop=True)
                     leaderboard_df.columns = ['Name', 'Club', 'Age', 'COFF Score']
                     st.dataframe(leaderboard_df, use_container_width=True, hide_index=False)
                 tab_idx += 1
             
-            if 'strika' in role_scores:
+            if include_striker:
                 with tabs[tab_idx]:
-                    score_col = role_scores['strika']
+                    score_col = role_scores['Striker']
                     leaderboard_df = sorted_df.sort_values(score_col, ascending=False)[['Name', 'Club', '_age', score_col]].head(20).reset_index(drop=True)
                     leaderboard_df.columns = ['Name', 'Club', 'Age', 'Striker Score']
                     st.dataframe(leaderboard_df, use_container_width=True, hide_index=False)
                 tab_idx += 1
             
-            if 'winger' in role_scores:
+            if include_winger:
                 with tabs[tab_idx]:
-                    score_col = role_scores['winger']
+                    score_col = role_scores['Winger']
                     leaderboard_df = sorted_df.sort_values(score_col, ascending=False)[['Name', 'Club', '_age', score_col]].head(20).reset_index(drop=True)
                     leaderboard_df.columns = ['Name', 'Club', 'Age', 'Winger Score']
                     st.dataframe(leaderboard_df, use_container_width=True, hide_index=False)
                 tab_idx += 1
             
-            if 'defensive_mid' in role_scores:
+            if include_defensive_mid:
                 with tabs[tab_idx]:
-                    score_col = role_scores['defensive_mid']
+                    score_col = role_scores['DM']
                     leaderboard_df = sorted_df.sort_values(score_col, ascending=False)[['Name', 'Club', '_age', score_col]].head(20).reset_index(drop=True)
                     leaderboard_df.columns = ['Name', 'Club', 'Age', 'Def Mid Score']
                     st.dataframe(leaderboard_df, use_container_width=True, hide_index=False)
                 tab_idx += 1
             
-            if 'defenders' in role_scores:
+            if include_defenders:
                 with tabs[tab_idx]:
-                    score_col = role_scores['defenders']
+                    score_col = role_scores['Defender']
                     leaderboard_df = sorted_df.sort_values(score_col, ascending=False)[['Name', 'Club', '_age', score_col]].head(20).reset_index(drop=True)
                     leaderboard_df.columns = ['Name', 'Club', 'Age', 'Defender Score']
                     st.dataframe(leaderboard_df, use_container_width=True, hide_index=False)
                 tab_idx += 1
             
-            if 'fullbacks' in role_scores:
+            if include_fullbacks:
                 with tabs[tab_idx]:
-                    score_col = role_scores['fullbacks']
+                    score_col = role_scores['Fullback']
                     leaderboard_df = sorted_df.sort_values(score_col, ascending=False)[['Name', 'Club', '_age', score_col]].head(20).reset_index(drop=True)
                     leaderboard_df.columns = ['Name', 'Club', 'Age', 'Fullback Score']
                     st.dataframe(leaderboard_df, use_container_width=True, hide_index=False)
                 tab_idx += 1
             
-            if 'goalkeeper' in role_scores:
+            if include_goalkeeper:
                 with tabs[tab_idx]:
-                    score_col = role_scores['goalkeeper']
+                    score_col = role_scores['Goalkeeper']
                     leaderboard_df = sorted_df.sort_values(score_col, ascending=False)[['Name', 'Club', '_age', score_col]].head(20).reset_index(drop=True)
                     leaderboard_df.columns = ['Name', 'Club', 'Age', 'GK Score']
                     st.dataframe(leaderboard_df, use_container_width=True, hide_index=False)
