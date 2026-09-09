@@ -398,7 +398,7 @@ def launch_app():
     app = create_app()
     app.queue().launch(
         server_name="127.0.0.1",
-        server_port=7860,
+        server_port=7861,
         show_error=True,
         share=False,
         css=DARK_MODE_CSS + TABLE_CSS
