@@ -116,7 +116,7 @@ def process_analysis(df, min_price, price_threshold, min_apps, max_age, min_age,
         
         # Parse Guide Value to numeric _price in €
         df = df.copy()
-        df['_price'] = df[cm['Guide Value']].apply(parse_value).fillna(0)
+        df['_price'] = pd.to_numeric(df[cm['Guide Value']].apply(lambda x: parse_value(x)), errors='coerce').fillna(0)
         df['_age'] = pd.to_numeric(df[cm['Age']], errors='coerce').fillna(0)
         df['_apps'] = pd.to_numeric(df[cm['Appearances']], errors='coerce').fillna(0)
         
