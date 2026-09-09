@@ -156,8 +156,13 @@ def calculate_offensive_score(row):
         offensive_score += cross_riusciti_p90 * 1.8  # Aumentato da 1.0 a 1.8 per enfatizzare i cross
     
     # xG Overperformance: ridotto da 2.0 a 0.5 per evitare rumore statistico
-    if not pd.isna(xg_overperformance) and xg_overperformance > 0:
-        offensive_score += xg_overperformance * 0.5  # Aggiornato da 2.0 a 0.5
+    if not pd.isna(xg_overperformance):
+        try:
+            xg_overperformance = float(xg_overperformance)
+            if xg_overperformance > 0:
+                offensive_score += xg_overperformance * 0.5  # Aggiornato da 2.0 a 0.5
+        except (ValueError, TypeError):
+            pass
     
     # === DEFENSIVE WEIGHTS (moderati/bassi) ===
     if not pd.isna(pressures_attempted_p90):
