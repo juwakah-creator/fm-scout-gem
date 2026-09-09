@@ -108,95 +108,57 @@ def calculate_coff_score(row):
     """
     
     # === CREATIVE METRICS (pesi elevati) ===
-    xa_p90 = row.get('xA per 90', np.nan)
-    key_passes_p90 = row.get('Key Passes per 90', np.nan)
-    goal_contributions_p90 = row.get('Goal Contributions per 90', np.nan)
-    passaggi_progressivi_p90 = row.get('Passaggi progressivi per 90', np.nan)
+    xa_p90 = pd.to_numeric(row.get('xA per 90', np.nan), errors='coerce')
+    key_passes_p90 = pd.to_numeric(row.get('Key Passes per 90', np.nan), errors='coerce')
+    goal_contributions_p90 = pd.to_numeric(row.get('Goal Contributions per 90', np.nan), errors='coerce')
+    passaggi_progressivi_p90 = pd.to_numeric(row.get('Passaggi progressivi per 90', np.nan), errors='coerce')
     
     # === FINISHING METRICS (pesi moderati-elevati) ===
-    xg_p90 = row.get('xG per 90', np.nan)
-    np_xg_p90 = row.get('NP-xG per 90', np.nan)
-    shots_targeted_p90 = row.get('Shots on Target per 90', np.nan)
-    dribbling_p90 = row.get('Dribbling completati per 90', np.nan)
-    xg_overperformance = row.get('xG Overperformance', np.nan)
+    xg_p90 = pd.to_numeric(row.get('xG per 90', np.nan), errors='coerce')
+    np_xg_p90 = pd.to_numeric(row.get('NP-xG per 90', np.nan), errors='coerce')
+    shots_targeted_p90 = pd.to_numeric(row.get('Shots on Target per 90', np.nan), errors='coerce')
+    dribbling_p90 = pd.to_numeric(row.get('Dribbling completati per 90', np.nan), errors='coerce')
+    xg_overperformance = pd.to_numeric(row.get('xG Overperformance', np.nan), errors='coerce')
     
     # === DEFENSIVE/PRESSING METRICS (pesi bassi) ===
-    pressures_attempted_p90 = row.get('Pressures Attempted per 90', np.nan)
-    possession_won_p90 = row.get('Possession Won per 90', np.nan)
-    header_win_pct = row.get('Header Win %', np.nan)
+    pressures_attempted_p90 = pd.to_numeric(row.get('Pressures Attempted per 90', np.nan), errors='coerce')
+    possession_won_p90 = pd.to_numeric(row.get('Possession Won per 90', np.nan), errors='coerce')
+    header_win_pct = pd.to_numeric(row.get('Header Win %', np.nan), errors='coerce')
     
     # Initialize score with a base value of 0
     coff_score = 0.0
     
     # === CREATIVE WEIGHTS (elevati) ===
     if not pd.isna(xa_p90):
-        try:
-            coff_score += float(xa_p90) * 2.0
-        except (ValueError, TypeError):
-            pass
+        coff_score += float(xa_p90) * 2.0
     if not pd.isna(key_passes_p90):
-        try:
-            coff_score += float(key_passes_p90) * 1.8
-        except (ValueError, TypeError):
-            pass
+        coff_score += float(key_passes_p90) * 1.8
     if not pd.isna(goal_contributions_p90):
-        try:
-            coff_score += float(goal_contributions_p90) * 2.0
-        except (ValueError, TypeError):
-            pass
+        coff_score += float(goal_contributions_p90) * 2.0
     if not pd.isna(passaggi_progressivi_p90):
-        try:
-            coff_score += float(passaggi_progressivi_p90) * 1.6
-        except (ValueError, TypeError):
-            pass
+        coff_score += float(passaggi_progressivi_p90) * 1.6
     
     # === FINISHING WEIGHTS (moderati-elevati) ===
     if not pd.isna(xg_p90):
-        try:
-            coff_score += float(xg_p90) * 1.8
-        except (ValueError, TypeError):
-            pass
+        coff_score += float(xg_p90) * 1.8
     if not pd.isna(np_xg_p90):
-        try:
-            coff_score += float(np_xg_p90) * 1.2
-        except (ValueError, TypeError):
-            pass
+        coff_score += float(np_xg_p90) * 1.2
     if not pd.isna(shots_targeted_p90):
-        try:
-            coff_score += float(shots_targeted_p90) * 1.0
-        except (ValueError, TypeError):
-            pass
+        coff_score += float(shots_targeted_p90) * 1.0
     if not pd.isna(dribbling_p90):
-        try:
-            coff_score += float(dribbling_p90) * 1.4
-        except (ValueError, TypeError):
-            pass
+        coff_score += float(dribbling_p90) * 1.4
     
     # xG Overperformance: ridotto per evitare rumore statistico
-    if not pd.isna(xg_overperformance):
-        try:
-            xg_overperformance = float(xg_overperformance)
-            if xg_overperformance > 0:
-                coff_score += xg_overperformance * 0.5
-        except (ValueError, TypeError):
-            pass
+    if not pd.isna(xg_overperformance) and xg_overperformance > 0:
+        coff_score += float(xg_overperformance) * 0.5
     
     # === DEFENSIVE/PRESSING WEIGHTS (bassi) ===
     if not pd.isna(pressures_attempted_p90):
-        try:
-            coff_score += float(pressures_attempted_p90) * 0.4
-        except (ValueError, TypeError):
-            pass
+        coff_score += float(pressures_attempted_p90) * 0.4
     if not pd.isna(possession_won_p90):
-        try:
-            coff_score += float(possession_won_p90) * 0.3
-        except (ValueError, TypeError):
-            pass
+        coff_score += float(possession_won_p90) * 0.3
     if not pd.isna(header_win_pct):
-        try:
-            coff_score += float(header_win_pct) * 0.1
-        except (ValueError, TypeError):
-            pass
+        coff_score += float(header_win_pct) * 0.1
         
     return coff_score
 

@@ -123,6 +123,48 @@ def calculate_goalkeeper_score(row):
     high_claims_p90 = row.get('High Claims per 90', np.nan)
     sweeper_actions_p90 = row.get('Sweeper Actions per 90', np.nan)
     
+    # Convert all values to float to handle string inputs from CSV
+    try:
+        save_percentage = float(save_percentage) if not pd.isna(save_percentage) else np.nan
+    except (ValueError, TypeError):
+        save_percentage = np.nan
+    try:
+        clean_sheets_pct = float(clean_sheets_pct) if not pd.isna(clean_sheets_pct) else np.nan
+    except (ValueError, TypeError):
+        clean_sheets_pct = np.nan
+    try:
+        goals_conceded_p90 = float(goals_conceded_p90) if not pd.isna(goals_conceded_p90) else np.nan
+    except (ValueError, TypeError):
+        goals_conceded_p90 = np.nan
+    try:
+        saves_per_90 = float(saves_per_90) if not pd.isna(saves_per_90) else np.nan
+    except (ValueError, TypeError):
+        saves_per_90 = np.nan
+    try:
+        pass_completion_pct = float(pass_completion_pct) if not pd.isna(pass_completion_pct) else np.nan
+    except (ValueError, TypeError):
+        pass_completion_pct = np.nan
+    try:
+        progressive_passes_p90 = float(progressive_passes_p90) if not pd.isna(progressive_passes_p90) else np.nan
+    except (ValueError, TypeError):
+        progressive_passes_p90 = np.nan
+    try:
+        distribution_accuracy_pct = float(distribution_accuracy_pct) if not pd.isna(distribution_accuracy_pct) else np.nan
+    except (ValueError, TypeError):
+        distribution_accuracy_pct = np.nan
+    try:
+        crosses_claimed_pct = float(crosses_claimed_pct) if not pd.isna(crosses_claimed_pct) else np.nan
+    except (ValueError, TypeError):
+        crosses_claimed_pct = np.nan
+    try:
+        high_claims_p90 = float(high_claims_p90) if not pd.isna(high_claims_p90) else np.nan
+    except (ValueError, TypeError):
+        high_claims_p90 = np.nan
+    try:
+        sweeper_actions_p90 = float(sweeper_actions_p90) if not pd.isna(sweeper_actions_p90) else np.nan
+    except (ValueError, TypeError):
+        sweeper_actions_p90 = np.nan
+    
     # Initialize score with a base value of 0
     goalkeeper_score = 0.0
     
