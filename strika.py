@@ -119,46 +119,87 @@ def calculate_striker_score(row):
     
     # === STRIKER WEIGHTS (elevati) ===
     if not pd.isna(goal_contributions_p90):
-        striker_score += goal_contributions_p90 * 2.0
+        try:
+            striker_score += float(goal_contributions_p90) * 2.0
+        except (ValueError, TypeError):
+            pass
     
     # xG_Adjusted formula: (NP-xG_p90 * 1.2) + (xG_p90 * 0.3) - NP-xG ridotto da 1.7 a 1.2 per bilanciamento
     if not pd.isna(np_xg_p90) and not pd.isna(xg_p90):
-        xg_adjusted = (np_xg_p90 * 1.2) + (xg_p90 * 0.3)
-        striker_score += xg_adjusted * 2.0
+        try:
+            xg_adjusted = (float(np_xg_p90) * 1.2) + (float(xg_p90) * 0.3)
+            striker_score += xg_adjusted * 2.0
+        except (ValueError, TypeError):
+            pass
     elif not pd.isna(np_xg_p90):
         # Fallback if xG per 90 is missing
-        striker_score += (np_xg_p90 * 1.2) * 2.0
+        try:
+            striker_score += float(np_xg_p90) * 1.2 * 2.0
+        except (ValueError, TypeError):
+            pass
     elif not pd.isna(xg_p90):
         # Fallback if NP-xG per 90 is missing
-        striker_score += (xg_p90 * 0.3) * 2.0
+        try:
+            striker_score += float(xg_p90) * 0.3 * 2.0
+        except (ValueError, TypeError):
+            pass
     
     if not pd.isna(key_passes_p90):
-        striker_score += key_passes_p90 * 1.5
+        try:
+            striker_score += float(key_passes_p90) * 1.5
+        except (ValueError, TypeError):
+            pass
     if not pd.isna(xa_p90):
-        striker_score += xa_p90 * 1.5
+        try:
+            striker_score += float(xa_p90) * 1.5
+        except (ValueError, TypeError):
+            pass
     if not pd.isna(shots_on_target_p90):
-        striker_score += shots_on_target_p90 * 1.2
+        try:
+            striker_score += float(shots_on_target_p90) * 1.2
+        except (ValueError, TypeError):
+            pass
     if not pd.isna(shots_p90):
-        striker_score += shots_p90 * 1.0
+        try:
+            striker_score += float(shots_p90) * 1.0
+        except (ValueError, TypeError):
+            pass
     if not pd.isna(pressures_p90):
-        striker_score += pressures_p90 * 0.8
+        try:
+            striker_score += float(pressures_p90) * 0.8
+        except (ValueError, TypeError):
+            pass
     if not pd.isna(pass_completion_pct):
-        striker_score += pass_completion_pct * 0.5
+        try:
+            striker_score += float(pass_completion_pct) * 0.5
+        except (ValueError, TypeError):
+            pass
     
     # xG Overperformance: bonus per giocatori che superano le aspettative (peso ridotto)
     xg_overperformance = pd.to_numeric(row.get('xG Overperformance', np.nan), errors='coerce')
-    if not pd.isna(xg_overperformance) and xg_overperformance > 0:
-        striker_score += xg_overperformance * 0.5
+    if not pd.isna(xg_overperformance):
+        try:
+            xg_overperformance = float(xg_overperformance)
+            if xg_overperformance > 0:
+                striker_score += xg_overperformance * 0.5
+        except (ValueError, TypeError):
+            pass
     
     # Passaggi progressivi per 90: progressione offensiva (nuovo peso)
     passaggi_progressivi_p90 = pd.to_numeric(row.get('Passaggi progressivi per 90', np.nan), errors='coerce')
     if not pd.isna(passaggi_progressivi_p90):
-        striker_score += passaggi_progressivi_p90 * 1.0
+        try:
+            striker_score += float(passaggi_progressivi_p90) * 1.0
+        except (ValueError, TypeError):
+            pass
     
     # Possession Won per 90: recupero possesso (nuovo peso)
     possession_won_p90 = pd.to_numeric(row.get('Possession Won per 90', np.nan), errors='coerce')
     if not pd.isna(possession_won_p90):
-        striker_score += possession_won_p90 * 0.8
+        try:
+            striker_score += float(possession_won_p90) * 0.8
+        except (ValueError, TypeError):
+            pass
         
     return striker_score
 
