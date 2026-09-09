@@ -66,20 +66,30 @@ def normalize(series):
     return normalized
 
 def age_factor(age):
-    """Calculate age factor based on player age.
+    """Calculate age factor - younger players get MUCH higher value.
+    
+    Players under 23 get maximum bonus (2.0x), then gradually decreases until 27.
+    Players 27+ get standard factor (1.0).
+    This strongly favors young players with good stats and low value.
     
     Args:
         age: Player's age
         
     Returns:
-        float: Age factor (2.0 if age < 20, 1.6 if age < 24, 1.3 if age < 27, 1.0 otherwise)
+        float: Age factor (1.0-2.0, much higher for younger players)
     """
-    if age < 20:
+    if pd.isna(age):
+        return 1.0
+    
+    age = float(age)
+    
+    # Players under 23 get maximum bonus (2.0x) - STRONG YOUTH BONUS
+    if age < 23:
         return 2.0
-    elif age < 24:
-        return 1.6
+    # Players 23-27 get gradual decrease from 2.0 to 1.0
     elif age < 27:
-        return 1.3
+        return 2.0 - ((age - 23) / 4) * 1.0
+    # Players 27+ get standard factor (1.0)
     else:
         return 1.0
 

@@ -57,26 +57,32 @@ def parse_guide_value(value):
 
 def calculate_age_factor(age):
     """
-    Calculate age factor to reward younger players more heavily
+    Calculate age factor - younger players get MUCH higher value
+    Players under 23 get maximum bonus (2.0x), then gradually decreases until 27
+    This strongly favors young players with good stats and low value
     
     Args:
         age: Player's age
         
     Returns:
-        float: Age multiplier (higher for younger players)
+        float: Age factor (1.0-2.0, much higher for younger players)
     """
-    if pd.isna(age) or age < 0:
+    if pd.isna(age):
         return 1.0
     
-    # Apply different factors based on age groups
-    if age <= 20:
-        return 2.0  # Youngest players get highest reward
-    elif 20 < age <= 23:
-        return 1.6  # Early 20s get high reward
-    elif 24 <= age <= 26:
-        return 1.3  # Mid-20s get moderate reward  
+    age = float(age)
+    
+    # Players under 23 get maximum bonus (2.0x) - STRONG YOUTH BONUS
+    if age < 23:
+        return 2.0
+    # Players 23-27 get gradual decrease from 2.0 to 1.0
+    elif age < 27:
+        return 2.0 - ((age - 23) / 4) * 1.0
+    # Players 27+ get standard factor (1.0)
     else:
-        return 1.0  # Older players get no bonus
+        return 1.0
+
+
 
 
 def calculate_defender_score(row):

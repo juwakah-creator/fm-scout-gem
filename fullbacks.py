@@ -142,7 +142,7 @@ def calculate_value_index(row, price_threshold=1e18):
     Returns:
         float: Value index score
     """
-    # Get score and age factor
+    # Get score
     if "Defender Score" in row.index:
         score = row["Defender Score"]
     elif "Fullback Score" in row.index:
@@ -150,18 +150,16 @@ def calculate_value_index(row, price_threshold=1e18):
     else:
         score = 0
     
-    # Calculate age factor (uniformato con altri moduli)
-    age = row.get("_age", 25)
+    # Calculate age factor - younger players get MUCH higher value (2.0x for under 23)
+    age = pd.to_numeric(row.get('Age', pd.to_numeric(row.get('_age', 25), errors='coerce')), errors='coerce')
     if pd.isna(age):
         age_factor = 1.0
-    elif age <= 23:
-        age_factor = 1.2  # ≤23 anni
-    elif age <= 27:
-        age_factor = 1.0  # 24-27 anni
-    elif age <= 30:
-        age_factor = 0.8  # 28-30 anni
+    elif age < 23:
+        age_factor = 2.0
+    elif age < 27:
+        age_factor = 2.0 - ((age - 23) / 4) * 1.0
     else:
-        age_factor = 0.6  # >30 anni
+        age_factor = 1.0
     
     # Get price (handle different column names)
     price_col = None

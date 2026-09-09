@@ -19,94 +19,223 @@ from defenders import calculate_defender_score
 from fullbacks import calculate_fullback_score
 from winger import calculate_offensive_score
 
-# Dark mode CSS with scrollable tables support
-DARK_MODE_CSS = """
+# Modern Dark mode CSS with enhanced UI styling
+ENHANCED_CSS = """
+/* Global Styles */
 .gradio-container {
-    background-color: #0d1117 !important;
+    background: linear-gradient(135deg, #0d1117 0%, #161b22 100%) !important;
+    font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif !important;
 }
+
 .main {
     background-color: #161b22 !important;
 }
-.block-title {
-    color: #58a6ff !important;
-}
-"""
 
-# CSS for scrollable table containers
-TABLE_CSS = """
-/* Scrollable container for wide tables */
+/* Enhanced Headers */
+.block-title, h1, h2, h3 {
+    background: linear-gradient(90deg, #58a6ff, #79c0ff) !important;
+    -webkit-background-clip: text !important;
+    -webkit-text-fill-color: transparent !important;
+    font-weight: 600 !important;
+    letter-spacing: -0.5px !important;
+}
+
+/* Modern Card Styling */
+.block {
+    background: linear-gradient(145deg, #1c2128, #161b22) !important;
+    border: 1px solid #30363d !important;
+    border-radius: 12px !important;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3) !important;
+    transition: all 0.3s ease !important;
+}
+
+.block:hover {
+    box-shadow: 0 6px 20px rgba(88, 166, 255, 0.15) !important;
+    border-color: #58a6ff !important;
+}
+
+/* Enhanced Buttons */
+button.primary {
+    background: linear-gradient(135deg, #238636, #2ea043) !important;
+    border: none !important;
+    border-radius: 8px !important;
+    font-weight: 600 !important;
+    padding: 12px 24px !important;
+    transition: all 0.3s ease !important;
+    box-shadow: 0 4px 12px rgba(46, 160, 67, 0.3) !important;
+}
+
+button.primary:hover {
+    background: linear-gradient(135deg, #2ea043, #3fb950) !important;
+    transform: translateY(-2px) !important;
+    box-shadow: 0 6px 20px rgba(46, 160, 67, 0.4) !important;
+}
+
+/* Slider Styling */
+input[type="range"] {
+    height: 6px !important;
+    border-radius: 3px !important;
+    background: #30363d !important;
+}
+
+input[type="range"]::-webkit-slider-thumb {
+    width: 18px !important;
+    height: 18px !important;
+    border-radius: 50% !important;
+    background: #58a6ff !important;
+    cursor: pointer !important;
+    box-shadow: 0 2px 6px rgba(88, 166, 255, 0.4) !important;
+}
+
+/* Checkbox Styling */
+input[type="checkbox"] {
+    width: 18px !important;
+    height: 18px !important;
+    accent-color: #58a6ff !important;
+}
+
+/* Scrollable table containers */
 .scrollable-table-container {
     overflow-x: auto;
     max-width: 100%;
     -webkit-overflow-scrolling: touch;
+    border-radius: 8px !important;
+    background: #0d1117 !important;
+    padding: 8px !important;
 }
 
-/* Ensure tables are responsive */
 .table-responsive {
     width: 100%;
     min-width: 100%;
 }
 
-/* Custom scrollbar styling for dark theme */
+/* Custom scrollbar styling */
 .scrollable-table-container::-webkit-scrollbar {
     height: 8px;
+    width: 8px;
 }
+
 .scrollable-table-container::-webkit-scrollbar-track {
     background: #21262d;
     border-radius: 4px;
 }
+
 .scrollable-table-container::-webkit-scrollbar-thumb {
-    background: #30363d;
+    background: linear-gradient(90deg, #30363d, #58a6ff);
     border-radius: 4px;
 }
+
 .scrollable-table-container::-webkit-scrollbar-thumb:hover {
-    background: #58a6ff;
+    background: linear-gradient(90deg, #58a6ff, #79c0ff);
 }
 
-/* Table styling for dark theme */
+/* Enhanced Table styling */
 .custom-table table {
     width: 100% !important;
     min-width: 100% !important;
     border-collapse: collapse;
+    font-size: 13px !important;
 }
+
 .custom-table th {
-    background-color: #0d1117 !important;
-    color: #58a6ff !important;
-    font-weight: bold !important;
+    background: linear-gradient(135deg, #1f6feb, #238636) !important;
+    color: #ffffff !important;
+    font-weight: 600 !important;
     border: 1px solid #30363d !important;
-    padding: 8px 12px !important;
+    padding: 12px 16px !important;
     white-space: nowrap !important;
+    text-transform: uppercase !important;
+    font-size: 11px !important;
+    letter-spacing: 0.5px !important;
 }
+
 .custom-table td {
     background-color: #161b22 !important;
-    color: #f5f5f5 !important;
+    color: #e6edf3 !important;
     border: 1px solid #30363d !important;
-    padding: 8px 12px !important;
+    padding: 10px 14px !important;
+    transition: all 0.2s ease !important;
 }
+
+.custom-table tr:hover td {
+    background-color: #1c2128 !important;
+    color: #58a6ff !important;
+}
+
 .custom-table tr:nth-child(even) td {
     background-color: #1a1a1a !important;
 }
+
 .custom-table tr:nth-child(odd) td {
     background-color: #0d1117 !important;
 }
 
-/* Info boxes */
+/* Info boxes with modern styling */
 .info-box {
-    padding: 15px;
-    border-radius: 8px;
+    padding: 16px 20px;
+    border-radius: 10px;
     margin-bottom: 20px;
     font-size: 14px;
-    line-height: 1.5;
+    line-height: 1.6;
+    font-weight: 500;
+    border-left: 4px solid;
 }
+
 .info-box.info {
-    background-color: #1a2535;
-    border: 1px solid #58a6ff;
-    color: #58a6ff;
+    background: linear-gradient(135deg, #1a2535, #0d1117);
+    border-left-color: #58a6ff;
+    color: #79c0ff;
+    box-shadow: 0 2px 8px rgba(88, 166, 255, 0.1);
 }
+
 .info-box.success {
-    background-color: #14261a;
-    border: 1px solid #3fb950;
-    color: #3fb950;
+    background: linear-gradient(135deg, #14261a, #0d1117);
+    border-left-color: #3fb950;
+    color: #56d364;
+    box-shadow: 0 2px 8px rgba(63, 185, 80, 0.1);
+}
+
+.info-box.warning {
+    background: linear-gradient(135deg, #2d2a1a, #0d1117);
+    border-left-color: #d29922;
+    color: #e3b341;
+    box-shadow: 0 2px 8px rgba(210, 153, 34, 0.1);
+}
+
+/* File upload area */
+.file-preview {
+    border-radius: 12px !important;
+    border: 2px dashed #30363d !important;
+    background: linear-gradient(145deg, #1c2128, #161b22) !important;
+    transition: all 0.3s ease !important;
+}
+
+.file-preview:hover {
+    border-color: #58a6ff !important;
+    background: linear-gradient(145deg, #21262d, #161b22) !important;
+}
+
+/* Group styling */
+.group {
+    background: linear-gradient(145deg, #1c2128, #161b22) !important;
+    border: 1px solid #30363d !important;
+    border-radius: 10px !important;
+    padding: 16px !important;
+    margin-bottom: 16px !important;
+}
+
+/* Accordion styling */
+.accordion {
+    border: 1px solid #30363d !important;
+    border-radius: 8px !important;
+    overflow: hidden !important;
+}
+
+.accordion-header {
+    background: linear-gradient(135deg, #21262d, #161b22) !important;
+    color: #79c0ff !important;
+    font-weight: 600 !important;
+    padding: 14px 18px !important;
 }
 """
 
@@ -401,7 +530,7 @@ def launch_app():
         server_port=7860,
         show_error=True,
         share=False,
-        css=DARK_MODE_CSS + TABLE_CSS
+        css=ENHANCED_CSS
     )
 
 if __name__ == "__main__":
