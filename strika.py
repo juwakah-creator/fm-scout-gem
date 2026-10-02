@@ -22,6 +22,7 @@ import numpy as np
 from typing import Optional
 import os
 import sys
+from scoring_v2_integration import calculate_score_percentile, calculate_value_index, parse_guide_value
 
 
 def parse_guide_value(value):
@@ -79,129 +80,18 @@ def calculate_age_factor(age):
         return 1.0  # Older players get no bonus
 
 
-def calculate_striker_score(row):
+def calculate_striker_score(df):
     """
-    Calculate a composite score with weighted metrics for strikers.
-    
-    Striker weights (high impact, 0.5-2.0x):
-    - Goal Contributions per 90 → 2.0x
-    - xG_Adjusted per 90 → 2.0x  # Formula: (NP-xG_p90 * 1.2) + (xG_p90 * 0.3) - NP-xG ridotto da 1.7 a 1.2 per bilanciamento
-    - Key Passes per 90 → 1.5x
-    - xA per 90 → 1.5x
-    - Shots on Target per 90 → 1.2x
-    - Shots per 90 → 1.0x
-    - Pressures per 90 → 0.8x
-    - Pass Completion % → 0.5x
-    - xG Overperformance → 0.5x (NUOVO: overperformance gol)
-    - Passaggi progressivi per 90 → 1.0x (NUOVO: progressione)
-    - Possession Won per 90 → 0.8x (NUOVO: recupero possesso)
+    Calculate percentile-based striker score using scoring_v2_integration.
     
     Args:
-        row: Pandas Series containing player data
-        
+        df: DataFrame con stats dei giocatori
+    
     Returns:
-        float: Composite striker score
+        pandas.Series: Punteggio striker normalizzato 0-100
     """
-    
-    # === STRIKER METRICS (pesi elevati) ===
-    goal_contributions_p90 = pd.to_numeric(row.get('Goal Contributions per 90', np.nan), errors='coerce')
-    np_xg_p90 = pd.to_numeric(row.get('NP-xG per 90', np.nan), errors='coerce')
-    xg_p90 = pd.to_numeric(row.get('xG per 90', np.nan), errors='coerce')
-    key_passes_p90 = pd.to_numeric(row.get('Key Passes per 90', np.nan), errors='coerce')
-    xa_p90 = pd.to_numeric(row.get('xA per 90', np.nan), errors='coerce')
-    shots_on_target_p90 = pd.to_numeric(row.get('Shots on Target per 90', np.nan), errors='coerce')
-    shots_p90 = pd.to_numeric(row.get('Shots per 90', np.nan), errors='coerce')
-    pressures_p90 = pd.to_numeric(row.get('Pressures Attempted per 90', np.nan), errors='coerce')
-    pass_completion_pct = pd.to_numeric(row.get('Pass Completion %', np.nan), errors='coerce')
-    
-    # Initialize score with a base value of 0
-    striker_score = 0.0
-    
-    # === STRIKER WEIGHTS (elevati) ===
-    if not pd.isna(goal_contributions_p90):
-        try:
-            striker_score += float(goal_contributions_p90) * 2.0
-        except (ValueError, TypeError):
-            pass
-    
-    # xG_Adjusted formula: (NP-xG_p90 * 1.2) + (xG_p90 * 0.3) - NP-xG ridotto da 1.7 a 1.2 per bilanciamento
-    if not pd.isna(np_xg_p90) and not pd.isna(xg_p90):
-        try:
-            xg_adjusted = (float(np_xg_p90) * 1.2) + (float(xg_p90) * 0.3)
-            striker_score += xg_adjusted * 2.0
-        except (ValueError, TypeError):
-            pass
-    elif not pd.isna(np_xg_p90):
-        # Fallback if xG per 90 is missing
-        try:
-            striker_score += float(np_xg_p90) * 1.2 * 2.0
-        except (ValueError, TypeError):
-            pass
-    elif not pd.isna(xg_p90):
-        # Fallback if NP-xG per 90 is missing
-        try:
-            striker_score += float(xg_p90) * 0.3 * 2.0
-        except (ValueError, TypeError):
-            pass
-    
-    if not pd.isna(key_passes_p90):
-        try:
-            striker_score += float(key_passes_p90) * 1.5
-        except (ValueError, TypeError):
-            pass
-    if not pd.isna(xa_p90):
-        try:
-            striker_score += float(xa_p90) * 1.5
-        except (ValueError, TypeError):
-            pass
-    if not pd.isna(shots_on_target_p90):
-        try:
-            striker_score += float(shots_on_target_p90) * 1.2
-        except (ValueError, TypeError):
-            pass
-    if not pd.isna(shots_p90):
-        try:
-            striker_score += float(shots_p90) * 1.0
-        except (ValueError, TypeError):
-            pass
-    if not pd.isna(pressures_p90):
-        try:
-            striker_score += float(pressures_p90) * 0.8
-        except (ValueError, TypeError):
-            pass
-    if not pd.isna(pass_completion_pct):
-        try:
-            striker_score += float(pass_completion_pct) * 0.5
-        except (ValueError, TypeError):
-            pass
-    
-    # xG Overperformance: bonus per giocatori che superano le aspettative (peso ridotto)
-    xg_overperformance = pd.to_numeric(row.get('xG Overperformance', np.nan), errors='coerce')
-    if not pd.isna(xg_overperformance):
-        try:
-            xg_overperformance = float(xg_overperformance)
-            if xg_overperformance > 0:
-                striker_score += xg_overperformance * 0.5
-        except (ValueError, TypeError):
-            pass
-    
-    # Passaggi progressivi per 90: progressione offensiva (nuovo peso)
-    passaggi_progressivi_p90 = pd.to_numeric(row.get('Passaggi progressivi per 90', np.nan), errors='coerce')
-    if not pd.isna(passaggi_progressivi_p90):
-        try:
-            striker_score += float(passaggi_progressivi_p90) * 1.0
-        except (ValueError, TypeError):
-            pass
-    
-    # Possession Won per 90: recupero possesso (nuovo peso)
-    possession_won_p90 = pd.to_numeric(row.get('Possession Won per 90', np.nan), errors='coerce')
-    if not pd.isna(possession_won_p90):
-        try:
-            striker_score += float(possession_won_p90) * 0.8
-        except (ValueError, TypeError):
-            pass
-        
-    return striker_score
+    score = calculate_score_percentile(df, role='striker')
+    return score
 
 
 def min_max_normalize(series):
@@ -249,42 +139,32 @@ def scale_value_index_to_100(series):
 
 def calculate_value_index(row, price_threshold=5000000):
     """
-    Calculate the value index comparing striker potential to price
-    
-    Value Index = (Striker Score * Age Factor) / Price
+    Calculate value index using scoring_v2_integration.
     
     Args:
         row: Pandas Series containing player data
         price_threshold: Maximum price threshold in Euros
-        
-    Returns:
-        float: Value index for the player, or NaN if not valid
-    """
     
-    # Extract required values
+    Returns:
+        float: Value index per the player, or NaN if not valid
+    """
     guide_value = row.get('Guide Value', np.nan)
     age = pd.to_numeric(row.get('Age', np.nan), errors='coerce')
     striker_score = row.get('Striker Score', np.nan)
     
-    # Check if we have enough data to calculate value index
     if pd.isna(guide_value) or pd.isna(age) or pd.isna(striker_score):
         return np.nan
     
-    # Convert guide value to numeric and validate price threshold
     parsed_price = parse_guide_value(guide_value)
     
-    # Check if player meets price criteria (below threshold)
     if pd.isna(parsed_price) or parsed_price > price_threshold:
         return np.nan
     
-    # Calculate age factor
-    age_factor = calculate_age_factor(age)
-    
-    # Avoid division by zero
     if parsed_price <= 0:
         return np.nan
-        
-    # Calculate value index: higher is better (better performance per unit cost)
+    
+    age_factor = calculate_age_factor(age)
+    
     try:
         value_index = (striker_score * age_factor) / parsed_price 
         return value_index
@@ -384,9 +264,9 @@ def process_football_data(input_file='strika.csv', output_file='best_striker_pro
         print("Processing Guide Value column...")
         df_processed['Guide Value Numeric'] = df_processed['Guide Value'].apply(parse_guide_value)
         
-        # Calculate striker score for each player
+        # Calculate striker score for each player using percentiler method
         print("Calculating striker scores...")
-        df_processed['Striker Score'] = df_processed.apply(calculate_striker_score, axis=1)
+        df_processed['Striker Score'] = calculate_striker_score(df_processed)
         
         # Normalize the striker scores using min-max scaling  
         print("Normalizing striker scores...")

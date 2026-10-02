@@ -22,6 +22,7 @@ import numpy as np
 from typing import Optional
 import os
 import sys
+from scoring_v2_integration import calculate_score_percentile, calculate_value_index, parse_guide_value
 
 
 def parse_guide_value(value):
@@ -79,109 +80,17 @@ def calculate_age_factor(age):
         return 1.0  # Older players get no bonus
 
 
-def calculate_defender_score(row):
+def calculate_defender_score(df):
     """
-    Calculate a composite score with weighted metrics for defenders.
-    
-    Defender weights (high impact, 0.5-3.0x):
-    - Defensive Actions per 90 → 3.0x
-    - Tackles per 90 → 2.5x
-    - Interceptions per 90 → 2.5x
-    - Possession Won per 90 → 2.0x
-    - Clearances per 90 → 1.5x
-    - Blocks per 90 → 1.5x
-    - Pressures Attempted per 90 → 1.5x (aumentato per enfatizzare il pressing)
-    
-    Build-up weights (medium impact, 1.0-2.5x):
-    - Progressive Passes per 90 → 2.5x
-    - Key Passes per 90 → 2.0x
-    - Creative Actions per 90 → 2.0x
-    - Pass Completion % → 1.5x
-    - Progressive Pass % → 1.5x
-    - Passes Completed per 90 → 1.0x
-    
-    Other weights (low impact, 0.5-2.0x):
-    - Goal Contributions per 90 → 2.0x
-    - Average Rating → 1.5x
-    - Header Win % → 1.5x
-    - Dribbles per 90 → 0.5x
+   Calculate percentile-based defender score using scoring_v2_integration.
     
     Args:
-        row: Pandas Series containing player data
+        df: DataFrame con stats dei giocatori
         
     Returns:
-        float: Composite defender score
+        pandas.Series: Punteggio defender normalizzato 0-100
     """
-    
-    # === DEFENSIVE METRICS (pesi elevati) ===
-    defensive_actions_p90 = pd.to_numeric(row.get('Defensive Actions per 90', np.nan), errors='coerce')
-    tackles_p90 = pd.to_numeric(row.get('Tackles per 90', np.nan), errors='coerce')
-    interceptions_p90 = pd.to_numeric(row.get('Interceptions per 90', np.nan), errors='coerce')
-    possession_won_p90 = pd.to_numeric(row.get('Possession Won per 90', np.nan), errors='coerce')
-    clearances_p90 = pd.to_numeric(row.get('Clearances per 90', np.nan), errors='coerce')
-    blocks_p90 = pd.to_numeric(row.get('Blocks per 90', np.nan), errors='coerce')
-    pressures_attempted_p90 = pd.to_numeric(row.get('Pressures Attempted per 90', np.nan), errors='coerce')
-    
-    # === BUILD-UP METRICS (peso medio) ===
-    progressive_passes_p90 = pd.to_numeric(row.get('Progressive Passes per 90', np.nan), errors='coerce')
-    key_passes_p90 = pd.to_numeric(row.get('Key Passes per 90', np.nan), errors='coerce')
-    creative_actions_p90 = pd.to_numeric(row.get('Creative Actions per 90', np.nan), errors='coerce')
-    pass_completion_pct = pd.to_numeric(row.get('Pass Completion %', np.nan), errors='coerce')
-    progressive_pass_pct = pd.to_numeric(row.get('Progressive Pass %', np.nan), errors='coerce')
-    passes_completed_p90 = pd.to_numeric(row.get('Passes Completed per 90', np.nan), errors='coerce')
-    
-    # === OTHER METRICS (peso basso) ===
-    goal_contributions_p90 = pd.to_numeric(row.get('Goal Contributions per 90', np.nan), errors='coerce')
-    average_rating = pd.to_numeric(row.get('Average Rating', np.nan), errors='coerce')
-    header_win_pct = pd.to_numeric(row.get('Header Win %', np.nan), errors='coerce')
-    dribbles_p90 = pd.to_numeric(row.get('Dribbles per 90', np.nan), errors='coerce')
-    
-    # Initialize score with a base value of 0
-    defender_score = 0.0
-    
-    # === DEFENSIVE WEIGHTS (elevati) ===
-    if not pd.isna(defensive_actions_p90):
-        defender_score += defensive_actions_p90 * 3.0
-    if not pd.isna(tackles_p90):
-        defender_score += tackles_p90 * 2.5
-    if not pd.isna(interceptions_p90):
-        defender_score += interceptions_p90 * 2.5
-    if not pd.isna(possession_won_p90):
-        defender_score += possession_won_p90 * 2.0
-    if not pd.isna(clearances_p90):
-        defender_score += clearances_p90 * 1.5
-    if not pd.isna(blocks_p90):
-        defender_score += blocks_p90 * 1.5
-    if not pd.isna(pressures_attempted_p90):
-        defender_score += pressures_attempted_p90 * 1.5  # Peso aumentato per enfatizzare il pressing difensivo
-    
-    # === BUILD-UP WEIGHTS (medio) ===
-    if not pd.isna(progressive_passes_p90):
-        defender_score += progressive_passes_p90 * 2.5
-    if not pd.isna(key_passes_p90):
-        defender_score += key_passes_p90 * 2.0
-    if not pd.isna(creative_actions_p90):
-        defender_score += creative_actions_p90 * 2.0
-    if not pd.isna(pass_completion_pct):
-        defender_score += pass_completion_pct * 1.5
-    if not pd.isna(progressive_pass_pct):
-        defender_score += progressive_pass_pct * 1.5
-    if not pd.isna(passes_completed_p90):
-        defender_score += passes_completed_p90 * 1.0
-    
-    # === OTHER WEIGHTS (basso) ===
-    if not pd.isna(goal_contributions_p90):
-        defender_score += goal_contributions_p90 * 2.0
-    if not pd.isna(average_rating):
-        defender_score += average_rating * 1.5
-    # Header Win %: usato una sola volta per evitare duplicazione (peso uniforme)
-    if not pd.isna(header_win_pct):
-        defender_score += header_win_pct * 1.5
-    
-    if not pd.isna(dribbles_p90):
-        defender_score += dribbles_p90 * 0.5
-        
-    return defender_score
+    return calculate_score_percentile(df, role='defender')
 
 
 def min_max_normalize(series):
@@ -229,7 +138,7 @@ def scale_value_index_to_100(series):
 
 def calculate_value_index(row, price_threshold=5000000):
     """
-    Calculate the value index comparing defender potential to price
+    Calculate the value index comparing defensive potential to price
     
     Value Index = (Defender Score * Age Factor) / Price
     
@@ -286,27 +195,26 @@ def calculate_additional_metrics(row):
     # Initialize dictionary to hold results  
     metrics = {}
     
-    # Defensive Efficiency = (Defensive Actions per 90) / (Tackles + Interceptions per 90)
-    defensive_actions_p90 = pd.to_numeric(row.get('Defensive Actions per 90', np.nan), errors='coerce')
+    # Defensive Efficiency = (Tackles + Interceptions) per 90 / (Clearances + Blocks per 90)
     tackles_p90 = pd.to_numeric(row.get('Tackles per 90', np.nan), errors='coerce')
     interceptions_p90 = pd.to_numeric(row.get('Interceptions per 90', np.nan), errors='coerce')
+    clearances_p90 = pd.to_numeric(row.get('Clearances per 90', np.nan), errors='coerce')
+    blocks_p90 = pd.to_numeric(row.get('Blocks per 90', np.nan), errors='coerce')
     
-    if not pd.isna(defensive_actions_p90) and not pd.isna(tackles_p90) and not pd.isna(interceptions_p90):
-        total_defensive = tackles_p90 + interceptions_p90
-        if total_defensive != 0:
-            metrics['Defensive Efficiency'] = defensive_actions_p90 / total_defensive
-        else:
-            metrics['Defensive Efficiency'] = np.nan
-    else:  
+    if not pd.isna(tackles_p90) and not pd.isna(interceptions_p90):
+        total_defensive_actions = tackles_p90 + interceptions_p90
+        total_clearances_blocks = clearances_p90 + blocks_p90 if not (pd.isna(clearances_p90) or pd.isna(blocks_p90)) else 0
+        metrics['Defensive Efficiency'] = total_defensive_actions / (total_clearances_blocks if total_clearances_blocks > 0 else 1)
+    else:
         metrics['Defensive Efficiency'] = np.nan
         
-    # Build-up Quality = (Progressive Passes per 90) / (Pass Completion %)
+    # Build-up Quality - player may be good at passing but low in progressive actions
     progressive_passes_p90 = pd.to_numeric(row.get('Progressive Passes per 90', np.nan), errors='coerce')
-    pass_completion_pct = pd.to_numeric(row.get('Pass Completion %', np.nan), errors='coerce')
+    key_passes_p90 = pd.to_numeric(row.get('Key Passes per 90', np.nan), errors='coerce')
     
-    if not pd.isna(progressive_passes_p90) and not pd.isna(pass_completion_pct) and pass_completion_pct != 0:
-        metrics['Build-up Quality'] = progressive_passes_p90 / (pass_completion_pct / 100)
-    else:  
+    if not pd.isna(progressive_passes_p90):
+        metrics['Build-up Quality'] = progressive_passes_p90 if progressive_passes_p90 > 0 else 0.0
+    else:
         metrics['Build-up Quality'] = np.nan
         
     return metrics
@@ -319,7 +227,7 @@ def process_football_data(input_file='defenders.csv', output_file='best_defender
     Args:
         input_file: Path to the CSV file with player data
         output_file: Path where results will be saved  
-        
+    
     Returns:
         pandas.DataFrame: Processed and filtered best prospects
     """ 
@@ -338,25 +246,22 @@ def process_football_data(input_file='defenders.csv', output_file='best_defender
             print(f"Warning: Missing expected columns: {missing_cols}")
             return None
             
-        # Check for defender stats columns specific to the role
+        # Check for defender stats columns
         defender_stats = [
-            'Defensive Actions per 90',
             'Tackles per 90',
             'Interceptions per 90',
-            'Possession Won per 90',
             'Clearances per 90',
             'Blocks per 90',
-            'Pressures Attempted per 90',
-            'Progressive Passes per 90',
-            'Key Passes per 90',
-            'Creative Actions per 90',
-            'Pass Completion %',
-            'Progressive Pass %',
-            'Passes Completed per 90',
-            'Goal Contributions per 90',
-            'Average Rating',
             'Header Win %',
-            'Dribbles per 90'
+            'Progressive Passes per 90',
+            'Pass Completion %',
+            'Pressures Attempted per 90',
+            'Aerial Duels Won %',
+            'Dribbled Past per 90',
+            'Dispossessed per 90',
+            'Fouls per 90',
+            'Yellow Cards',
+            'Red Cards',
         ]
         
         # Add more stats that might be present
@@ -374,9 +279,9 @@ def process_football_data(input_file='defenders.csv', output_file='best_defender
         print("Processing Guide Value column...")
         df_processed['Guide Value Numeric'] = df_processed['Guide Value'].apply(parse_guide_value)
         
-        # Calculate defender score for each player
+        # Calculate defender score for each player using percentile method
         print("Calculating defender scores...")
-        df_processed['Defender Score'] = df_processed.apply(calculate_defender_score, axis=1)
+        df_processed['Defender Score'] = calculate_defender_score(df_processed)
         
         # Normalize the defender scores using min-max scaling  
         print("Normalizing defender scores...")
@@ -444,10 +349,18 @@ def process_football_data(input_file='defenders.csv', output_file='best_defender
         output_cols = [
             'Name', 'Club', 'Age', 'Guide Value',
             'Defender Score', 'Value Index',
-            'Defensive Actions per 90', 'Tackles per 90', 'Interceptions per 90',
-            'Possession Won per 90', 'Clearances per 90', 'Blocks per 90',
-            'Pressures Attempted per 90', 'Progressive Passes per 90', 'Key Passes per 90',
-            'Creative Actions per 90', 'Pass Completion %', 'Progressive Pass %'
+            'Tackles per 90', 'Interceptions per 90', 'Clearances per 90',
+            'Blocks per 90', 'Header Win %', 'Progressive Passes per 90',
+            'Pass Completion %', 'Pressures Attempted per 90', 'Aerial Duels Won %'
+        ]
+        
+        # Add additional columns that might be present
+        additional_output_cols = [
+            'Dribbled Past per 90',
+            'Dispossessed per 90',
+            'Fouls per 90',
+            'Yellow Cards',
+            'Red Cards',
         ]
         
         # Add any additional columns that might be present
@@ -463,11 +376,22 @@ def process_football_data(input_file='defenders.csv', output_file='best_defender
             print(f"Value Index: {row.get('Value Index', 'N/A'):.4f}")
             
             # Print defender stats if available
-            defender_stats_to_show = ['Defensive Actions per 90', 'Tackles per 90', 'Interceptions per 90',
-                                     'Possession Won per 90', 'Clearances per 90', 'Blocks per 90',
-                                     'Pressures Attempted per 90', 'Progressive Passes per 90', 'Key Passes per 90',
-                                     'Creative Actions per 90', 'Pass Completion %', 'Progressive Pass %']
+            defender_stats_to_show = ['Tackles per 90', 'Interceptions per 90',
+                                       'Clearances per 90', 'Blocks per 90',
+                                       'Header Win %', 'Progressive Passes per 90',
+                                       'Pass Completion %', 'Pressures Attempted per 90',
+                                       'Aerial Duels Won %']
             for stat in defender_stats_to_show:
+                value = row.get(stat, 'N/A')
+                if not isinstance(value, str) and pd.notna(value):
+                    print(f"{stat}: {value:.2f}")
+                elif isinstance(value, str) and value != 'N/A':
+                    print(f"{stat}: {value}")
+            
+            # Print additional stats if available
+            additional_stats_to_show = ['Dribbled Past per 90', 'Dispossessed per 90',
+                                        'Fouls per 90', 'Yellow Cards', 'Red Cards']
+            for stat in additional_stats_to_show:
                 value = row.get(stat, 'N/A')
                 if not isinstance(value, str) and pd.notna(value):
                     print(f"{stat}: {value:.2f}")
@@ -481,7 +405,7 @@ def process_football_data(input_file='defenders.csv', output_file='best_defender
         
         try:
             final_df.to_csv(output_file, index=False)  
-            print(f"\nResults saved to {output_file}")
+            #print(f"\nResults saved to {output_file}")
         except Exception as e:
             print(f"Warning: Could not save results to CSV: {e}")
             
@@ -496,211 +420,3 @@ def process_football_data(input_file='defenders.csv', output_file='best_defender
     except Exception as e:
         print(f"Unexpected error processing data: {e}")
         return None
-
-
-def compute_dimension_scores(df):
-    """
-    Compute dimension scores for defenders based on percentile rankings.
-    
-    Creates 5 new columns classifying playing style:
-    - difensiva_score: Defensive ability
-    - costruzione_score: Build-up/playmaking ability
-    - pressing_score: Pressing intensity
-    - aerea_score: Aerial ability
-    - attacco_score: Overall attacking score
-    
-    Args:
-        df: pandas.DataFrame with player statistics
-        
-    Returns:
-        pandas.DataFrame: DataFrame with only the 5 dimension score columns
-    """
-    # Edge case: empty DataFrame
-    if len(df) == 0:
-        return pd.DataFrame(columns=[
-            'difensiva_score', 'costruzione_score',
-            'pressing_score', 'aerea_score', 'attacco_score'
-        ])
-    
-    # Define dimensions with their metrics and weights (defender-specific)
-    dimensions = {
-        'difensiva': {
-            'metrics': [
-                ('Defensive Actions per 90', 3.0),
-                ('Tackles per 90', 2.5),
-                ('Interceptions per 90', 2.5),
-                ('Possession Won per 90', 2.0),
-                ('Clearances per 90', 1.5),
-                ('Blocks per 90', 1.5)
-            ]
-        },
-        'costruzione': {
-            'metrics': [
-                ('Progressive Passes per 90', 2.5),
-                ('Key Passes per 90', 2.0),
-                ('Creative Actions per 90', 2.0),
-                ('Pass Completion %', 1.5),
-                ('Progressive Pass %', 1.5),
-                ('Passes Completed per 90', 1.0)
-            ]
-        },
-        'pressing': {
-            'metrics': [
-                ('Pressures Attempted per 90', 1.0),
-                ('Possession Won per 90', 0.6)
-            ]
-        },
-        'aerea': {
-            'metrics': [
-                ('Header Win %', 1.5)
-            ],
-            'default_value': 50.0
-        }
-    }
-    
-    # Collect all metric columns that exist in the DataFrame
-    all_metric_cols = set()
-    for dim_config in dimensions.values():
-        for metric_name, _ in dim_config['metrics']:
-            if metric_name in df.columns:
-                all_metric_cols.add(metric_name)
-    
-    # If no metrics at all, return NaN for all scores
-    if not all_metric_cols:
-        result_data = {}
-        for dim_name in ['difensiva', 'costruzione', 'pressing', 'aerea', 'attacco']:
-            result_data[dim_name + '_score'] = pd.Series(np.nan, index=df.index)
-        return pd.DataFrame(result_data)
-    
-    # Calculate percentiles for all metrics across the population
-    percentile_cols = {}
-    for dim_name, dim_config in dimensions.items():
-        for metric_name, _ in dim_config['metrics']:
-            if metric_name in df.columns:
-                col_data = df[metric_name].copy()
-                # Exclude NaN values for ranking
-                valid_mask = col_data.notna()
-                # Calculate percentile using rank(pct=True) * 100
-                percentiles = pd.Series(np.nan, index=df.index)
-                if valid_mask.any():
-                    ranked = col_data[valid_mask].rank(pct=True) * 100
-                    percentiles[valid_mask] = ranked
-                percentile_cols[metric_name] = percentiles
-    
-    # Compute scores for each dimension
-    result_data = {}
-    
-    for dim_name in ['difensiva', 'costruzione', 'pressing', 'aerea']:
-        dim_config = dimensions[dim_name]
-        metrics = dim_config['metrics']
-        
-        # Collect valid percentiles and their original weights
-        valid_percentiles = []
-        valid_weights = []
-        
-        for metric_name, weight in metrics:
-            if metric_name in percentile_cols:
-                pct = percentile_cols[metric_name].copy()
-                valid_percentiles.append(pct)
-                valid_weights.append(weight)
-        
-        # Special handling for aerea (Header Win %)
-        if dim_name == 'aerea':
-            header_col = 'Header Win %'
-            if header_col in df.columns:
-                header_data = df[header_col].fillna(50.0)
-                valid_mask = header_data.notna()
-                if valid_mask.any():
-                    percentiles_header = header_data.rank(pct=True) * 100
-                    result_data[dim_name + '_score'] = percentiles_header.round(2)
-                else:
-                    # All values are NaN, use default 50 for all rows
-                    result_data[dim_name + '_score'] = pd.Series(50.0, index=df.index).round(2)
-            else:
-                # Column doesn't exist but other metrics do - use default 50 for all rows
-                result_data[dim_name + '_score'] = pd.Series(50.0, index=df.index).round(2)
-            continue
-        
-        # Check if any metrics are available
-        if not valid_percentiles:
-            result_data[dim_name + '_score'] = pd.Series(np.nan, index=df.index)
-            continue
-        
-        # Normalize weights so they sum to 1
-        total_weight = sum(valid_weights)
-        normalized_weights = [w / total_weight for w in valid_weights]
-        
-        # Calculate weighted score
-        score = pd.Series(0.0, index=df.index)
-        for pct, nw in zip(valid_percentiles, normalized_weights):
-            score += pct * nw
-        
-        result_data[dim_name + '_score'] = score.round(2)
-    
-    # Calculate attacco_score as average of the other four
-    attack_components = [
-        result_data.get('difensiva_score'),
-        result_data.get('costruzione_score'),
-        result_data.get('pressing_score'),
-        result_data.get('aerea_score')
-    ]
-    
-    # Filter out None values and calculate mean
-    valid_scores = [s for s in attack_components if s is not None]
-    if valid_scores:
-        attacco_score = pd.concat(valid_scores, axis=1).mean(axis=1)
-        result_data['attacco_score'] = attacco_score.round(2)
-    else:
-        # All scores are NaN (no metrics available), create a Series of NaN values
-        result_data['attacco_score'] = pd.Series(np.nan, index=df.index)
-    
-    # Create result DataFrame with only the 5 score columns
-    result_df = pd.DataFrame({
-        'difensiva_score': result_data.get('difensiva_score'),
-        'costruzione_score': result_data.get('costruzione_score'),
-        'pressing_score': result_data.get('pressing_score'),
-        'aerea_score': result_data.get('aerea_score'),
-        'attacco_score': result_data.get('attacco_score')
-    })
-    
-    return result_df
-
-
-# Entry point for the script
-if __name__ == "__main__":
-    """
-    Main entry point of the script.
-    
-    Usage examples:
-    - Run with default filenames:
-        python defenders.py
-        
-    - Process a different file:
-        python defenders.py input_file.csv output_file.csv
-    """
-    
-    # Default filenames  
-    input_filename = "defenders.csv" 
-    output_filename = "best_defender_prospects.csv"
-    
-    # Check if command line arguments are provided
-    if len(sys.argv) > 1:
-        input_filename = sys.argv[1] 
-        
-    if len(sys.argv) > 2:  
-        output_filename = sys.argv[2]
-        
-    print(f"Starting defender player analysis...")
-    print(f"Input file: {input_filename}")
-    print(f"Output file: {output_filename}") 
-    
-    # Process the data
-    result_df = process_football_data(input_file=input_filename, 
-                                       output_file=output_filename)
-    
-    if result_df is not None:
-        print("\nAnalysis complete!")
-        
-    else:
-        print("\nError occurred during analysis.")
-        sys.exit(1) 
