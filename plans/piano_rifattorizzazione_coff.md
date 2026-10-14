@@ -1,8 +1,8 @@
 # Piano di Rifattorizzazione Sistema COF
 
 ## Obiettivi
-1. Eliminare colonna "COFF Score" dalla tabella → sostituire con "Index Value" (max 100, dinamico)
-2. Eliminare completamente "COFF Profile Generator"
+1. Eliminare colonna "COF Score" dalla tabella → sostituire con "Index Value" (max 100, dinamico)
+2. Eliminare completamente "COF Profile Generator"
 3. Rendere visibili le statistiche avanzate usate per calcolare l'index
 
 ## Analisi Struttura Attuale

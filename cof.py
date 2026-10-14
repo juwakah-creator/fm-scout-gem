@@ -8,7 +8,7 @@ to buy at low cost and flip for profit, with focus on creative playmaking and go
 Features:
 - Reads CSV files with football player statistics
 - Handles special formatting in Guide Value column (€, K, M)
-- Calculates composite attacking scores with weighted metrics specific to COFF
+- Calculates composite attacking scores with weighted metrics specific to COF
 - Computes value index comparing offensive potential to price
 - Filters players based on criteria (price, appearances, age)
 - Outputs top prospects sorted by value index
@@ -82,7 +82,7 @@ def calculate_age_factor(age):
 
 def calculate_cof_score(row):
     """
-    Calculate a composite score with weighted metrics for attacking midfielders (COFF).
+    Calculate a composite score with weighted metrics for attacking midfielders (COF).
     
     Creative/Playmaking weights (high impact, 1.5-2.0x):
     - xA per 90 → 2.0x
@@ -321,7 +321,7 @@ def process_football_data(input_file='cof.csv', output_file='best_cof_prospects.
             print(f"Warning: Missing expected columns: {missing_cols}")
             return None
             
-        # Check for creative/attacking stats columns specific to COFF
+        # Check for creative/attacking stats columns specific to COF
         creative_stats = [
             'xA per 90',
             'Key Passes per 90',
@@ -348,7 +348,7 @@ def process_football_data(input_file='cof.csv', output_file='best_cof_prospects.
         ] + creative_stats + defensive_stats
         
         missing_cols = [col for col in all_stats if col not in df.columns]
-        print(f"Missing COFF stats columns: {missing_cols}")
+        print(f"Missing COF stats columns: {missing_cols}")
         
         # Create a copy to avoid modifying the original
         df_processed = df.copy()
@@ -357,14 +357,14 @@ def process_football_data(input_file='cof.csv', output_file='best_cof_prospects.
         print("Processing Guide Value column...")
         df_processed['Guide Value Numeric'] = df_processed['Guide Value'].apply(parse_guide_value)
         
-        # Calculate COFF percentile score using scoring_v2_integration
+        # Calculate COF percentile score using scoring_v2_integration
         print("Calculating COF scores...")
         df_processed['COF Score'] = calculate_score_percentile(df_processed, role='cof')
         
         # Calculate value index for each player
         print("Calculating value indices...")
         df_processed['Value Index'] = df_processed.apply(
-            lambda row: calculate_value_index(row, df_processed.loc[row.name, 'COFF Score']), 
+            lambda row: calculate_value_index(row, df_processed.loc[row.name, 'COF Score']),
             axis=1
         )
         
@@ -425,7 +425,7 @@ def process_football_data(input_file='cof.csv', output_file='best_cof_prospects.
         # Prepare output columns
         output_cols = [
             'Name', 'Club', 'Age', 'Guide Value',
-            'COFF Score', 'Value Index',
+            'COF Score', 'Value Index',
             'xA per 90', 'Key Passes per 90', 'Goal Contributions per 90',
             'Passaggi progressivi per 90', 'xG per 90', 'NP-xG per 90',
             'Shots on Target per 90', 'Dribbling completati per 90'
@@ -447,7 +447,7 @@ def process_football_data(input_file='cof.csv', output_file='best_cof_prospects.
             print(f"{row['Name']} ({row['Club']})")
             print(f"Age: {row.get('Age', 'N/A')}")
             print(f"Price: {row.get('Guide Value', 'N/A')}")
-            print(f"COFF Score: {row.get('COFF Score', 'N/A'):.2f}")  
+            print(f"COF Score: {row.get('COF Score', 'N/A'):.2f}")
             print(f"Value Index: {row.get('Value Index', 'N/A'):.4f}")
             
             # Print creative stats if available

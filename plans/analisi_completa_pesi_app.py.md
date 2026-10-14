@@ -284,7 +284,7 @@ Alcuni moduli usano `min_max_normalize()` con comportamento leggermente diverso:
 
 #### 3.6 Metriche Non Presenti in Alcuni Moduli
 
-| Metrica | winger | DM | Strika | Defenders | Fullbacks | COFF | GK |
+| Metrica | winger | DM | Strika | Defenders | Fullbacks | COF | GK |
 |---------|--------|----|--------|-----------|-----------|------|-----|
 | Mistakes Leading to Goals | ❌ | ✅ (-0.7) | ❌ | ❌ | ✅ (-2.0) | ❌ | ❌ |
 | Creative Actions per 90 | ❌ | ❌ | ❌ | ✅ (2.0) | ❌ | ❌ | ❌ |

@@ -401,7 +401,7 @@ striker_score = (
 #### Metriche Difensive/Pressing (Peso Basso: 0.2-0.4x)
 | Statistica | Peso | Rilevanza per il Ruolo |
 |------------|------|------------------------|
-| **Pressures Attempted per 90** | **0.4x** | Pressing; peso basso perché COFF offensivo |
+| **Pressures Attempted per 90** | **0.4x** | Pressing; peso basso perché COF offensivo |
 | **Possession Won per 90** | **0.3x** | Recupero possesso; utile ma non primario |
 | **Header Win %** | **0.1x** | Duello aereo; peso minimo |
 
@@ -431,14 +431,14 @@ cof_score = (
 ### Impatto sulle Decisioni Operative
 - **Creatività assoluta priorità**: xA e Key Passes hanno pesi massimi (2.0x e 1.8x)
 - **Goal Contributions bilanciato**: 2.0x come metrica totale di impatto
-- **Dribbling importante**: Aumentato a 1.4x per COFF che devono superare avversari
-- **Pressing secondario**: Pesi bassi (0.2-0.4x) perché COFF sono offensivi
+- **Dribbling importante**: Aumentato a 1.4x per COF che devono superare avversari
+- **Pressing secondario**: Pesi bassi (0.2-0.4x) perché COF sono offensivi
 
 ---
 
 ## 9. RIASSUNTO COMPARATIVO PESI PER RUOLO
 
-| Metrica | GK | DEF | FB | DM | Winger | Striker | COFF |
+| Metrica | GK | DEF | FB | DM | Winger | Striker | COF |
 |---------|----|-----|----|----|--------|---------|------|
 | Goal Contributions/90 | - | 2.0 | 1.5 | 0.1 | 2.0 | 2.0 | 2.0 |
 | xG/90 | - | - | 1.0 | - | 2.0 | 0.6* | 1.8 |
@@ -533,7 +533,7 @@ Value Index = (Role Score × Age Factor) / Guide Value
 
 Il sistema FM Scout Gem utilizza **pesi differenziati** per ciascun ruolo, bilanciando:
 - **Difesa**: Pesi alti per difensori (2.5-3.0x), medi per terzini (1.5-2.8x), bassi per attaccanti (0.1-0.4x)
-- **Creatività**: Pesi massimi per COFF e terzini (2.0-2.5x), moderati per DM (0.2-1.2x)
+- **Creatività**: Pesi massimi per COF e terzini (2.0-2.5x), moderati per DM (0.2-1.2x)
 - **Finalizzazione**: Pesi massimi per attaccanti e winger (2.0x)
 
 **Anomalie principali da risolvere:**

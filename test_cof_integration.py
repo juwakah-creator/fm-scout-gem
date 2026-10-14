@@ -163,4 +163,4 @@ if __name__ == "__main__":
     test_compute_dimension_scores()
     test_empty_dataframe()
     test_value_index_scaling()
-    print("\n[TUTTI I TEST COFF SONO PASSATI CON SUCCESSO!]")
+    print("\n[TUTTI I TEST COF SONO PASSATI CON SUCCESSO!]")

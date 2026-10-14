@@ -343,7 +343,7 @@ def main():
             for col in dim_cols:
                 if col in sorted_df.columns:
                     display_name = col.replace('_score', '').title()
-                    display_df[f'COFF {display_name}'] = sorted_df[col].round(2)
+                    display_df[f'COF {display_name}'] = sorted_df[col].round(2)
         
         # Goalkeeper dimensions
         if include_goalkeeper:
@@ -533,9 +533,9 @@ def main():
             
             if include_cof:
                 with tabs[tab_idx]:
-                    score_col = role_scores['COFF']
+                    score_col = role_scores['COF']
                     leaderboard_df = sorted_df.sort_values(score_col, ascending=False)[['Name', 'Club', '_age', score_col]].head(20).reset_index(drop=True)
-                    leaderboard_df.columns = ['Name', 'Club', 'Age', 'COFF Score']
+                    leaderboard_df.columns = ['Name', 'Club', 'Age', 'COF Score']
                     st.dataframe(leaderboard_df, use_container_width=True, hide_index=False)
                 tab_idx += 1
             
