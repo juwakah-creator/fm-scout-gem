@@ -7,7 +7,7 @@
 Il progetto analizza i dati dei giocatori da file CSV, applicando modelli statistici specifici per ciascun ruolo calcistico. Ogni modulo è specializzato nel valutare le competenze richieste dal rispettivo archetipo tattico.
 
 ### Funzionalità Principali
-- **7 Moduli Specializzati**: Winger, COFF (Mediano Offensivo), Striker, Defensive Midfielder, Defender, Fullback, Goalkeeper
+- **7 Moduli Specializzati**: Winger, COF (Centrocampista Offensivo), Striker, Defensive Midfielder, Defender, Fullback, Goalkeeper
 - **Value Index**: Metrica composita che bilancia performance, età e prezzo di mercato
 - **Normalizzazione Min-Max**: Confronto equo tra giocatori nello stesso dataset
 - **Fattore Età**: Premia i giovani talenti con moltiplicatori crescenti
@@ -344,9 +344,9 @@ striker_score = (
 #### Metriche Difensive/Pressing (Peso Basso: 0.2-0.4x)
 | Statistica | Peso | Descrizione | Rilevanza per il Ruolo | Impatto Decisioni |
 |------------|------|-------------|------------------------|-------------------|
-| **Pressures Attempted per 90** | **0.4x** | Pressing | Peso basso perché COFF offensivo; pressing secondario | Pressing alto è utile ma non primario |
+| **Pressures Attempted per 90** | **0.4x** | Pressing | Peso basso perché COF offensivo; pressing secondario | Pressing alto è utile ma non primario |
 | **Possession Won per 90** | **0.3x** | Recuperi possesso | Utile ma non primario per ruolo creativo | Metrica di supporto |
-| **Header Win %** | **0.1x** | Duello aereo | Peso minimo; duello aereo non primario per COFF | Header win basso è normale |
+| **Header Win %** | **0.1x** | Duello aereo | Peso minimo; duello aereo non primario per COF | Header win basso è normale |
 
 #### Formula Score COFF
 ```python
@@ -377,7 +377,7 @@ cof_score = (
 
 ### Tabella Comparativa Pesi per Ruolo
 
-| Metrica | GK | DEF | FB | DM | Winger | Striker | COFF |
+| Metrica | GK | DEF | FB | DM | Winger | Striker | COF |
 |---------|----|-----|----|----|--------|---------|------|
 | **Goal Contributions/90** | - | 2.0 | 1.5 | 0.1 | 2.0 | 2.0 | 2.0 |
 | **xG/90** | - | - | 1.0 | - | 2.0 | 0.6* | 1.8 |
