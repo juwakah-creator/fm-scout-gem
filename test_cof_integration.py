@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Test di integrazione COFF con app.py - Versione aggiornata dopo rimozione PlayerProfileGenerator"""
+"""Test di integrazione COF con app.py - Versione aggiornata dopo rimozione PlayerProfileGenerator"""
 
 import pandas as pd
 import numpy as np
@@ -55,7 +55,8 @@ def test_calculate_value_index():
         'Header Win %': 55.0,
     })
     
-    value_index = calculate_value_index(row, price_threshold=int(1e18))
+    cof_score = calculate_cof_score(row)
+    value_index = calculate_value_index(row, cof_score, price_threshold=int(1e18))
     print(f"Value Index (raw): {value_index:.6f}")
     
     # Validazione
@@ -138,8 +139,9 @@ def test_value_index_scaling():
     })
     
     # Calcola value index per ogni riga
+    df_test['COF Score'] = df_test.apply(calculate_cof_score, axis=1)
     df_test['Value Index'] = df_test.apply(
-        lambda row: calculate_value_index(row, price_threshold=int(1e18)), axis=1
+        lambda row: calculate_value_index(row, row['COF Score'], price_threshold=int(1e18)), axis=1
     )
     
     # Scala a 0-100

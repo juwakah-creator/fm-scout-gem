@@ -106,7 +106,7 @@ def process_analysis_with_min_age(df, mode, min_age,
     
     Args:
         df: DataFrame contenente i dati dei giocatori
-        mode: Modalità analisi - "winger", "defensive_mid", o "coff"
+        mode: Modalità analisi - "winger", "defensive_mid", o "cof"
         min_age: int - Età minima (filtro sempre applicato)
         min_price_val: float - Prezzo minimo in milioni
         price_val: float - Prezzo massimo in milioni
@@ -119,7 +119,7 @@ def process_analysis_with_min_age(df, mode, min_age,
     if df is None or len(df) == 0:
         return "<p>No data available</p>", "<p>No data available</p>"
     
-    valid_modes = ["winger", "defensive_mid", "coff"]
+    valid_modes = ["winger", "defensive_mid", "cof"]
     if mode not in valid_modes:
         raise ValueError(f"Invalid mode '{mode}'. Valid modes are: {valid_modes}")
     
@@ -577,12 +577,12 @@ def process_with_min_age_filter(
     Processa i dati dei giocatori applicando il filtro età minima.
     
     Questa funzione integra il nuovo filtro min_age nella pipeline esistente,
-    mantenendo la compatibilità con le modalità di analisi (winger, defensive_mid, coff).
+    mantenendo la compatibilità con le modalità di analisi (winger, defensive_mid, cof).
     
     Args:
         df: DataFrame contenente i dati dei giocatori
         min_age: int - Età minima da applicare
-        mode: str - Modalità analisi ("winger", "defensive_mid", "coff")
+        mode: str - Modalità analisi ("winger", "defensive_mid", "cof")
         
     Returns:
         tuple: (df_filtrato, html_riepilogo)
@@ -601,7 +601,7 @@ def process_with_min_age_filter(
         raise TypeError(f"Tipo non supportato: {type(df)}. Attendesi DataFrame pandas.")
     
     # Validazione modalità
-    valid_modes = ["winger", "defensive_mid", "coff"]
+    valid_modes = ["winger", "defensive_mid", "cof"]
     if mode not in valid_modes:
         raise ValueError(f"Modalità '{mode}' non valida. Scegli tra: {valid_modes}")
     

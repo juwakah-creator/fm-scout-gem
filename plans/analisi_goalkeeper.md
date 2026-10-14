@@ -79,7 +79,7 @@
 
 #### a) `process_analysis(df, mode, ...)` (linee 30-137)
 - **Routing**: Based on mode parameter
-- **Valid modes**: ["winger", "defensive_mid", "strika", "defenders", "fullbacks", "coff"]
+- **Valid modes**: ["winger", "defensive_mid", "strika", "defenders", "fullbacks", "cof"]
 - **Filtri applicati**:
   - Price: min_price_val * 1M to max_price_val * 1M
   - Age: min_age to max_age
@@ -97,8 +97,8 @@ elif mode == "defenders":
     result_html, debug_html = _process_defender(filtered_df, cm)
 elif mode == "fullbacks":
     result_html, debug_html = _process_fullback(filtered_df, cm)
-elif mode == "coff":
-    result_html, debug_html = _process_coff(filtered_df, cm)
+elif mode == "cof":
+    result_html, debug_html = _process_cof(filtered_df, cm)
 ```
 
 #### c) Pattern Comune di Processing:

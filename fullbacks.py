@@ -11,7 +11,7 @@ import sys
 from scoring_v2_integration import calculate_score_percentile, calculate_value_index, parse_guide_value
 
 
-def parse_guide_value(value):
+def _parse_guide_value_local(value):
     if pd.isna(value) or value == '' or value is None:
         return np.nan
     cleaned_value = str(value).strip().replace('€', '').replace(' ', '')
@@ -40,7 +40,7 @@ def calculate_age_factor(age):
         return 1.0
 
 
-def calculate_full_back_score(df):
+def calculate_fullback_score(df):
     return calculate_score_percentile(df, role='full_back')
 
 
@@ -51,7 +51,7 @@ def min_max_normalize(series):
     return normalized.fillna(0)
 
 
-def calculate_value_index(row, price_threshold=5000000):
+def _calculate_value_index_local(row, price_threshold=5000000):
     guide_value = row.get('Guide Value', np.nan)
     age = pd.to_numeric(row.get('Age', np.nan), errors='coerce')
     full_back_score = row.get('Full-Back Score', np.nan)
@@ -59,7 +59,7 @@ def calculate_value_index(row, price_threshold=5000000):
     if pd.isna(guide_value) or pd.isna(age) or pd.isna(full_back_score):
         return np.nan
     
-    parsed_price = parse_guide_value(guide_value)
+    parsed_price = _parse_guide_value_local(guide_value)
     if pd.isna(parsed_price) or parsed_price > price_threshold:
         return np.nan
     
