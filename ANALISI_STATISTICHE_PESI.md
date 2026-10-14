@@ -405,7 +405,7 @@ striker_score = (
 | **Possession Won per 90** | **0.3x** | Recupero possesso; utile ma non primario |
 | **Header Win %** | **0.1x** | Duello aereo; peso minimo |
 
-### Formula Score COFF
+### Formula Score COF
 ```python
 cof_score = (
     # Creative metrics (pesi elevati)

@@ -348,7 +348,7 @@ striker_score = (
 | **Possession Won per 90** | **0.3x** | Recuperi possesso | Utile ma non primario per ruolo creativo | Metrica di supporto |
 | **Header Win %** | **0.1x** | Duello aereo | Peso minimo; duello aereo non primario per COF | Header win basso è normale |
 
-#### Formula Score COFF
+#### Formula Score COF
 ```python
 cof_score = (
     # Creative metrics (pesi elevati)
