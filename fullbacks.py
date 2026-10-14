@@ -40,8 +40,9 @@ def calculate_age_factor(age):
         return 1.0
 
 
-def calculate_fullback_score(df):
-    return calculate_score_percentile(df, role='full_back')
+def calculate_fullback_score(row):
+    df = pd.DataFrame([row])
+    return calculate_score_percentile(df, role='full_back').iloc[0]
 
 
 def min_max_normalize(series):

@@ -80,6 +80,20 @@ def calculate_age_factor(age):
         return 1.0  # Older players get no bonus
 
 
+def calculate_offensive_score(row):
+    """
+    Calculate percentile-based winger score for a single player row.
+    
+    Args:
+        row: Pandas Series containing player data
+        
+    Returns:
+        float: Percentile score (0-100) for winger role
+    """
+    df = pd.DataFrame([row])
+    return calculate_score_percentile(df, role='winger').iloc[0]
+
+
 def calculate_value_index(row, score, price_threshold=5000000):
     """
     Calculate the value index comparing wing potential to price.

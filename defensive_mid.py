@@ -80,17 +80,18 @@ def calculate_age_factor(age):
         return 1.0  # Older players get no bonus
 
 
-def calculate_defensive_score(df):
+def calculate_defensive_score(row):
     """
-    Calculate percentile-based defensive score using scoring_v2_integration.
+    Calculate percentile-based defensive score for a single player row.
     
     Args:
-        df: DataFrame con stats dei giocatori
+        row: Pandas Series containing player data
         
     Returns:
-        pandas.Series: Punteggio DM difensivo normalizzato 0-100
+        float: Percentile score (0-100) for defensive mid role
     """
-    return calculate_score_percentile(df, role='defensive_mid')
+    df = pd.DataFrame([row])
+    return calculate_score_percentile(df, role='defensive_mid').iloc[0]
 
 
 def min_max_normalize(series):

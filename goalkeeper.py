@@ -43,8 +43,9 @@ def calculate_age_factor(age):
         return 1.0
 
 
-def calculate_goalkeeper_score(df):
-    return calculate_score_percentile(df, role='goalkeeper')
+def calculate_goalkeeper_score(row):
+    df = pd.DataFrame([row])
+    return calculate_score_percentile(df, role='goalkeeper').iloc[0]
 
 
 def min_max_normalize(series):

@@ -16,7 +16,7 @@ from strika import calculate_striker_score
 from goalkeeper import calculate_goalkeeper_score
 from defensive_mid import calculate_defensive_score
 from defenders import calculate_defender_score
-from fullbacks import calculate_full_back_score
+from fullbacks import calculate_fullback_score
 from winger import calculate_offensive_score
 
 # Dark mode CSS with scrollable tables support

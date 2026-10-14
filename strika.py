@@ -80,18 +80,18 @@ def calculate_age_factor(age):
         return 1.0  # Older players get no bonus
 
 
-def calculate_striker_score(df):
+def calculate_striker_score(row):
     """
-    Calculate percentile-based striker score using scoring_v2_integration.
+    Calculate percentile-based striker score for a single player row.
     
     Args:
-        df: DataFrame con stats dei giocatori
+        row: Pandas Series containing player data
     
     Returns:
-        pandas.Series: Punteggio striker normalizzato 0-100
+        float: Percentile score (0-100) for striker role
     """
-    score = calculate_score_percentile(df, role='striker')
-    return score
+    df = pd.DataFrame([row])
+    return calculate_score_percentile(df, role='striker').iloc[0]
 
 
 def min_max_normalize(series):
