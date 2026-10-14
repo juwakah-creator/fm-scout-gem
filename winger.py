@@ -1,14 +1,14 @@
 #!/usr/bin/env python3
 """
-Football Player Analysis Script for Identifying Best Value Prospects
+Football Player Analysis Script for Identifying Best Value Wing Prospects
 
-This script analyzes football player data to identify the best prospects to buy at low cost 
-and flip for profit, with focus on offensive performance.
+This script analyzes football player data to identify the best wing prospects 
+to buy at low cost and flip for profit, with focus on dribbling, crossing, and creativity.
 
 Features:
 - Reads CSV files with football player statistics
 - Handles special formatting in Guide Value column (€, K, M)
-- Calculates composite offensive scores with weighted metrics
+- Calculates composite wing scores with weighted metrics specific to wingers
 - Computes value index comparing offensive potential to price
 - Filters players based on criteria (price, appearances, age)
 - Outputs top prospects sorted by value index
@@ -22,6 +22,7 @@ import numpy as np
 from typing import Optional
 import os
 import sys
+from scoring_v2_integration import calculate_score_percentile
 
 
 def parse_guide_value(value):
@@ -79,150 +80,16 @@ def calculate_age_factor(age):
         return 1.0  # Older players get no bonus
 
 
-def calculate_offensive_score(row):
+def calculate_value_index(row, score, price_threshold=5000000):
     """
-    Calculate a composite score with weighted metrics for both offense and defense.
+    Calculate the value index comparing wing potential to price.
     
-    Offensive weights (high impact, 0.5-2.0x):
-    - Goal Contributions / 90 → 2.0x
-    - xG / 90 → 2.0x (uniformato tra le funzioni)
-    - xA / 90 → 2.0x
-    - NP-xG / 90 → 1.5x
-    - Dribbling completati / 90 → 1.6x [AUMENTATO da 1.2 a 1.6]
-    - Shots on Target / 90 → 1.0x
-    - Key Passes / 90 → 1.5x [UNIFORMATO e AUMENTATO da 1.0 a 1.5]
-    - Attacking Actions / 90 → 1.0x
-    - Passaggi progressivi / 90 → 1.0x [NUOVA]
-    - Cross riusciti / 90 → 1.8x [AUMENTATO da 1.0 a 1.8]
-    - xG Overperformance → 0.5x (ridotto da 2.0 a 0.5)
-    
-    Defensive weights (moderate/low impact, 0.1-0.4x):
-    - Pressures Attempted / 90 → 0.4x [NUOVA]
-    - Possession Won / 90 → 0.3x [NUOVA]
-    - Pressing Efficiency → 0.2x [NUOVA]
-    - Header Win % → 0.1x
+    Value Index = (Score * Age Factor) / Price
+    Score è un punteggio percentile (0-100) da calculate_score_percentile(role='winger').
     
     Args:
         row: Pandas Series containing player data
-        
-    Returns:
-        float: Composite score (offensive + defensive)
-    """
-    
-    # === OFFENSIVE METRICS (pesi elevati) ===
-    goal_contributions_p90 = pd.to_numeric(row.get('Goal Contributions per 90', np.nan), errors='coerce')
-    xg_p90 = pd.to_numeric(row.get('xG per 90', np.nan), errors='coerce')
-    xa_p90 = pd.to_numeric(row.get('xA per 90', np.nan), errors='coerce')
-    np_xg_p90 = pd.to_numeric(row.get('NP-xG per 90', np.nan), errors='coerce')
-    dribbling_p90 = pd.to_numeric(row.get('Dribbling completati per 90', np.nan), errors='coerce')
-    shots_targeted_p90 = pd.to_numeric(row.get('Shots on Target per 90', np.nan), errors='coerce')
-    key_passes_p90 = pd.to_numeric(row.get('Key Passes per 90', np.nan), errors='coerce')
-    attacking_actions_p90 = pd.to_numeric(row.get('Attacking Actions per 90', np.nan), errors='coerce')
-    passaggi_progressivi_p90 = pd.to_numeric(row.get('Passaggi progressivi per 90', np.nan), errors='coerce')
-    cross_riusciti_p90 = pd.to_numeric(row.get('Cross riusciti per 90', np.nan), errors='coerce')
-    xg_overperformance = pd.to_numeric(row.get('xG Overperformance', np.nan), errors='coerce')
-    
-    # === DEFENSIVE METRICS (pesi moderati/bassi) ===
-    pressures_attempted_p90 = pd.to_numeric(row.get('Pressures Attempted per 90', np.nan), errors='coerce')
-    possession_won_p90 = pd.to_numeric(row.get('Possession Won per 90', np.nan), errors='coerce')
-    pressing_efficiency = pd.to_numeric(row.get('Pressing Efficiency', np.nan), errors='coerce')
-    header_win_pct = pd.to_numeric(row.get('Header Win %', np.nan), errors='coerce')
-    
-    # Initialize score with a base value of 0
-    offensive_score = 0.0
-    
-    # === OFFENSIVE WEIGHTS (elevati) ===
-    if not pd.isna(goal_contributions_p90):
-        offensive_score += float(goal_contributions_p90) * 2.0
-    if not pd.isna(xg_p90):
-        offensive_score += float(xg_p90) * 2.0
-    if not pd.isna(xa_p90):
-        offensive_score += float(xa_p90) * 2.0
-    if not pd.isna(np_xg_p90):
-        offensive_score += float(np_xg_p90) * 1.5
-    
-    # Metriche con peso aumentato (1.6x per dribbling, 1.5x per key passes)
-    if not pd.isna(dribbling_p90):
-        offensive_score += float(dribbling_p90) * 1.6  # Aumentato da 1.2 a 1.6
-    if not pd.isna(shots_targeted_p90):
-        offensive_score += float(shots_targeted_p90) * 1.0
-    if not pd.isna(key_passes_p90):
-        offensive_score += float(key_passes_p90) * 1.5  # Uniformato e aumentato da 1.0 a 1.5
-    if not pd.isna(attacking_actions_p90):
-        offensive_score += float(attacking_actions_p90) * 1.0
-    if not pd.isna(passaggi_progressivi_p90):
-        offensive_score += float(passaggi_progressivi_p90) * 1.0  # [NUOVA]
-    if not pd.isna(cross_riusciti_p90):
-        offensive_score += float(cross_riusciti_p90) * 1.8  # Aumentato da 1.0 a 1.8 per enfatizzare i cross
-    
-    # xG Overperformance: ridotto da 2.0 a 0.5 per evitare rumore statistico
-    if not pd.isna(xg_overperformance) and xg_overperformance > 0:
-        offensive_score += float(xg_overperformance) * 0.5  # Aggiornato da 2.0 a 0.5
-    
-    # === DEFENSIVE WEIGHTS (moderati/bassi) ===
-    if not pd.isna(pressures_attempted_p90):
-        offensive_score += float(pressures_attempted_p90) * 0.4  # [NUOVA]
-    if not pd.isna(possession_won_p90):
-        offensive_score += float(possession_won_p90) * 0.3  # [NUOVA]
-    if not pd.isna(pressing_efficiency):
-        offensive_score += float(pressing_efficiency) * 0.2  # [NUOVA]
-    if not pd.isna(header_win_pct):
-        offensive_score += float(header_win_pct) * 0.1  # Esistente (nuova categoria)
-        
-    return offensive_score
-
-
-def min_max_normalize(series):
-    """
-    Normalize a series using min-max scaling (0-1 range)
-    
-    Args:
-        series: Pandas Series to normalize
-        
-    Returns:
-        pandas.Series: Normalized values between 0 and 1
-    """
-    # Handle edge cases where all values are the same or series is empty 
-    if len(series) == 0 or series.min() == series.max():
-        return pd.Series([0.0] * len(series), index=series.index)
-    
-    normalized = (series - series.min()) / (series.max() - series.min())
-    # Ensure any NaN values remain as NaN
-    return normalized.fillna(0)
-
-
-def scale_value_index_to_100(series):
-    """
-    Scale Value Index values from their raw range to a 0-100 scale.
-    
-    This function preserves relative differences between players while
-    mapping the distribution uniformly across the 0-100 range.
-    
-    Args:
-        series: Pandas Series containing raw Value Index values
-        
-    Returns:
-        pandas.Series: Scaled values between 0 and 100
-    """
-    # Handle edge cases where all values are the same or series is empty
-    if len(series) == 0 or series.min() == series.max():
-        return pd.Series([50.0] * len(series), index=series.index)
-    
-    # Min-max normalize to 0-1 range, then scale to 0-100
-    normalized = (series - series.min()) / (series.max() - series.min())
-    scaled = normalized * 100
-    # Ensure any NaN values remain as NaN
-    return scaled.fillna(0)
-
-
-def calculate_value_index(row, price_threshold=5000000):
-    """
-    Calculate the value index comparing offensive potential to price
-    
-    Value Index = (Offensive Score * Age Factor) / Price
-    
-    Args:
-        row: Pandas Series containing player data
+        score: Percentile score (0-100) from calculate_score_percentile
         price_threshold: Maximum price threshold in Euros
         
     Returns:
@@ -231,14 +98,13 @@ def calculate_value_index(row, price_threshold=5000000):
     
     # Extract required values
     guide_value = row.get('Guide Value', np.nan)
-    age = row.get('Age', np.nan)
-    offensive_score = row.get('Offensive Score', np.nan) 
+    age = pd.to_numeric(row.get('Age', np.nan), errors='coerce')
     
     # Check if we have enough data to calculate value index
-    if pd.isna(guide_value) or pd.isna(age) or pd.isna(offensive_score):
+    if pd.isna(guide_value) or pd.isna(age):
         return np.nan
-        
-    # Convert guide value to numeric and validate price threshold  
+    
+    # Convert guide value to numeric and validate price threshold
     parsed_price = parse_guide_value(guide_value)
     
     # Check if player meets price criteria (below threshold)
@@ -251,10 +117,13 @@ def calculate_value_index(row, price_threshold=5000000):
     # Avoid division by zero
     if parsed_price <= 0:
         return np.nan
+    
+    if pd.isna(score):
+        return np.nan
         
     # Calculate value index: higher is better (better performance per unit cost)
     try:
-        value_index = (offensive_score * age_factor) / parsed_price 
+        value_index = (score * age_factor) / parsed_price
         return value_index
     except ZeroDivisionError:
         return np.nan
@@ -262,7 +131,7 @@ def calculate_value_index(row, price_threshold=5000000):
 
 def calculate_additional_metrics(row):
     """
-    Calculate additional helpful metrics for player analysis
+    Calculate additional helpful metrics for wing analysis
     
     Args:
         row: Pandas Series containing player data
@@ -274,32 +143,30 @@ def calculate_additional_metrics(row):
     # Initialize dictionary to hold results  
     metrics = {}
     
-    # Offensive Efficiency = (Goal Contributions per 90) / (Shots per 90)
-    goal_contributions_p90 = row.get('Goal Contributions per 90', np.nan)
-    shots_p90 = row.get('Shots per 90', np.nan)
+    # Wing Efficiency = (Dribbling + Crosses) per 90
+    dribbling_p90 = row.get('Dribbling completati per 90', np.nan)
+    crosses_p90 = row.get('Cross riusciti per 90', np.nan)
     
-    if not pd.isna(goal_contributions_p90) and not pd.isna(shots_p90) and shots_p90 != 0:
-        metrics['Offensive Efficiency'] = goal_contributions_p90 / shots_p90
+    if not pd.isna(dribbling_p90) and not pd.isna(crosses_p90):
+        metrics['Wing Efficiency'] = dribbling_p90 + crosses_p90
     else:  
-        metrics['Offensive Efficiency'] = np.nan
+        metrics['Wing Efficiency'] = np.nan
         
-    # Growth Potential - player may be lucky with high xG but low overperformance 
+    # Creative Threat Potential
     xg_p90 = row.get('xG per 90', np.nan)
     xg_overperformance = row.get('xG Overperformance', np.nan)
     
     if not pd.isna(xg_p90) and not pd.isna(xg_overperformance):
-        # If player has high expected goals but negative overperformance, 
-        # they might be underperforming due to luck
-        metrics['Growth Potential'] = xg_p90 if (xg_p90 > 0 and xg_overperformance < 0) else 0.0  
+        metrics['Creative Threat Potential'] = xg_p90 if (xg_p90 > 0 and xg_overperformance < 0) else 0.0  
     else:
-        metrics['Growth Potential'] = np.nan
+        metrics['Creative Threat Potential'] = np.nan
         
     return metrics
 
 
-def process_football_data(input_file='strika.csv', output_file='best_prospects.csv'):
+def process_football_data(input_file='winger.csv', output_file='best_wing_prospects.csv'):
     """
-    Main function to process football player data
+    Main function to process wing player data
     
     Args:
         input_file: Path to the CSV file with player data
@@ -323,37 +190,29 @@ def process_football_data(input_file='strika.csv', output_file='best_prospects.c
             print(f"Warning: Missing expected columns: {missing_cols}")
             return None
             
-        # Check for offensive stats columns
-        offensive_stats = [
+        # Check for wing stats columns
+        wing_stats = [
+            'Dribbling completati per 90',
+            'xA per 90',
             'Goal Contributions per 90',
             'xG per 90',
-            'xA per 90',
-            'Shots on Target per 90',
             'Key Passes per 90',
-            'Attacking Actions per 90',
-            'NP-xG per 90',
-            'xG Overperformance',
-            'Dribbling completati per 90',      # [NUOVA]
-            'Passaggi progressivi per 90',      # [NUOVA]
-            'Cross riusciti per 90'             # [NUOVA]
-        ]
-        
-        # Defensive stats columns (nuovo sistema di pesi)
-        defensive_stats = [
-            'Pressures Attempted per 90',       # [NUOVA]
-            'Possession Won per 90',            # [NUOVA]
-            'Pressing Efficiency',              # [NUOVA]
-            'Header Win %'                      # Esistente (nuova categoria)
+            'Cross riusciti per 90',
+            'Passaggi progressivi per 90',
+            'Pressures Attempted per 90'
         ]
         
         # Add more stats that might be present
         all_stats = [
             'Appearances',
-            'Shots per 90'
-        ] + offensive_stats + defensive_stats
+            'Shots per 90',
+            'Shots on Target per 90',
+            'Header Win %',
+            'Possession Won per 90'
+        ] + wing_stats
         
-        missing_offensive_cols = [col for col in all_stats if col not in df.columns]
-        print(f"Missing offensive stats columns: {missing_offensive_cols}")
+        missing_cols = [col for col in all_stats if col not in df.columns]
+        print(f"Missing wing stats columns: {missing_cols}")
         
         # Create a copy to avoid modifying the original
         df_processed = df.copy()
@@ -362,24 +221,23 @@ def process_football_data(input_file='strika.csv', output_file='best_prospects.c
         print("Processing Guide Value column...")
         df_processed['Guide Value Numeric'] = df_processed['Guide Value'].apply(parse_guide_value)
         
-        # Calculate offensive score for each player
-        print("Calculating offensive scores...")
-        df_processed['Offensive Score'] = df_processed.apply(calculate_offensive_score, axis=1)
-        
-        # Normalize the offensive scores using min-max scaling  
-        print("Normalizing offensive scores...")
-        df_processed['Normalized Offensive Score'] = min_max_normalize(df_processed['Offensive Score'])
+        # Calculate wing percentile score using scoring_v2_integration
+        print("Calculating wing scores...")
+        df_processed['Wing Score'] = calculate_score_percentile(df_processed, role='winger')
         
         # Calculate value index for each player
         print("Calculating value indices...")
-        df_processed['Value Index'] = df_processed.apply(calculate_value_index, axis=1)
+        df_processed['Value Index'] = df_processed.apply(
+            lambda row: calculate_value_index(row, df_processed.loc[row.name, 'Wing Score']), 
+            axis=1
+        )
         
         # Apply additional metrics 
         print("Computing additional metrics...")
         additional_metrics = df_processed.apply(calculate_additional_metrics, axis=1)
         
         # Add calculated metrics back to dataframe
-        for col in ['Offensive Efficiency', 'Growth Potential']:
+        for col in ['Wing Efficiency', 'Creative Threat Potential']:
             if col in additional_metrics.iloc[0]:  # Check if metric was computed 
                 df_processed[col] = [m.get(col, np.nan) for m in additional_metrics]
                 
@@ -431,50 +289,46 @@ def process_football_data(input_file='strika.csv', output_file='best_prospects.c
         # Prepare output columns
         output_cols = [
             'Name', 'Club', 'Age', 'Guide Value',
-            'Offensive Score', 'Value Index',
-            'Goal Contributions per 90', 'xG per 90', 'xA per 90', 'Shots on Target per 90',
-            'Dribbling completati per 90',      # [NUOVA]
-            'Passaggi progressivi per 90',      # [NUOVA]
-            'Cross riusciti per 90'             # [NUOVA]
+            'Wing Score', 'Value Index',
+            'Dribbling completati per 90', 'xA per 90', 'Goal Contributions per 90',
+            'xG per 90', 'Key Passes per 90', 'Cross riusciti per 90',
+            'Passaggi progressivi per 90', 'Pressures Attempted per 90'
         ]
         
         # Add defensive columns if present
         defensive_output_cols = [
-            'Pressures Attempted per 90',       # [NUOVA]
-            'Possession Won per 90',            # [NUOVA]
-            'Pressing Efficiency',              # [NUOVA]
-            'Header Win %'                      # Esistente (nuova categoria)
+            'Pressures Attempted per 90',
+            'Possession Won per 90',
+            'Header Win %'
         ]
         
         # Add any additional columns that might be present
         available_cols = [col for col in output_cols if col in top_20_prospects.columns]
         
-        print("\nTop 20 Prospects:")
+        print("\nTop 20 Wing Prospects:")
         print("-" * 60) 
         for index, row in top_20_prospects.iterrows():
             print(f"{row['Name']} ({row['Club']})")
             print(f"Age: {row.get('Age', 'N/A')}")
             print(f"Price: {row.get('Guide Value', 'N/A')}")
-            print(f"Offensive Score: {row.get('Offensive Score', 'N/A'):.2f}")  
+            print(f"Wing Score: {row.get('Wing Score', 'N/A'):.2f}")  
             print(f"Value Index: {row.get('Value Index', 'N/A'):.4f}")
             
-            # Print additional stats if available
-            offensive_stats_to_show = ['Goal Contributions per 90', 'xG per 90',
-                                     'xA per 90', 'Shots on Target per 90',
-                                     'Dribbling completati per 90',      # [NUOVA]
-                                     'Passaggi progressivi per 90',      # [NUOVA]
-                                     'Cross riusciti per 90']            # [NUOVA]
-            for stat in offensive_stats_to_show:
+            # Print wing stats if available
+            wing_stats_to_show = ['Dribbling completati per 90', 'xA per 90',
+                                  'Goal Contributions per 90', 'xG per 90',
+                                  'Key Passes per 90', 'Cross riusciti per 90',
+                                  'Passaggi progressivi per 90']
+            for stat in wing_stats_to_show:
                 value = row.get(stat, 'N/A')
                 if not isinstance(value, str) and pd.notna(value):
                     print(f"{stat}: {value:.2f}")
                 elif isinstance(value, str) and value != 'N/A':
                     print(f"{stat}: {value}")
             # Print defensive stats if available
-            defensive_stats_to_show = ['Pressures Attempted per 90',      # [NUOVA]
-                                       'Possession Won per 90',           # [NUOVA]
-                                       'Pressing Efficiency',             # [NUOVA]
-                                       'Header Win %']                    # Esistente (nuova categoria)
+            defensive_stats_to_show = ['Pressures Attempted per 90',
+                                       'Possession Won per 90',
+                                       'Header Win %']
             for stat in defensive_stats_to_show:
                 value = row.get(stat, 'N/A')
                 if not isinstance(value, str) and pd.notna(value):
@@ -682,9 +536,9 @@ if __name__ == "__main__":
         python winger.py input_file.csv output_file.csv
     """
     
-    # Default filenames  
-    input_filename = "strika.csv" 
-    output_filename = "best_prospects.csv"
+    #Default filenames  
+    input_filename = "winger.csv" 
+    output_filename = "best_wing_prospects.csv"
     
     # Check if command line arguments are provided
     if len(sys.argv) > 1:
@@ -693,7 +547,7 @@ if __name__ == "__main__":
     if len(sys.argv) > 2:  
         output_filename = sys.argv[2]
         
-    print(f"Starting football player analysis...")
+    print(f"Starting wing player analysis...")
     print(f"Input file: {input_filename}")
     print(f"Output file: {output_filename}") 
     
@@ -702,8 +556,8 @@ if __name__ == "__main__":
                                        output_file=output_filename)
     
     if result_df is not None:
-        print("\nAnalysis complete!")
+        print("\n Analysis complete!")
         
     else:
-        print("\nError occurred during analysis.")
+        print("\n Error occurred during analysis.")
         sys.exit(1) 

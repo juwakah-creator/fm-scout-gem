@@ -22,6 +22,7 @@ import numpy as np
 from typing import Optional
 import os
 import sys
+from scoring_v2_integration import calculate_score_percentile
 
 
 def parse_guide_value(value):
@@ -206,15 +207,16 @@ def scale_value_index_to_100(series):
     return scaled.fillna(0)
 
 
-def calculate_value_index(row, price_threshold=5000000):
+def calculate_value_index(row, score, price_threshold=5000000):
     """
     Calculate the value index comparing attacking midfield potential to price.
     
-    Uses weighted statistics directly instead of pre-computed COFF Score.
-    Value Index = (Weighted Score * Age Factor) / Price
+    Value Index = (Score * Age Factor) / Price
+    Score è un punteggio percentile (0-100) da calculate_score_percentile(role='coff').
     
     Args:
         row: Pandas Series containing player data
+        score: Percentile score (0-100) from calculate_score_percentile
         price_threshold: Maximum price threshold in Euros
         
     Returns:
@@ -243,15 +245,12 @@ def calculate_value_index(row, price_threshold=5000000):
     if parsed_price <= 0:
         return np.nan
     
-    # Calculate COFF score directly from weighted statistics
-    coff_score = calculate_coff_score(row)
-    
-    if pd.isna(coff_score):
+    if pd.isna(score):
         return np.nan
         
     # Calculate value index: higher is better (better performance per unit cost)
     try:
-        value_index = (coff_score * age_factor) / parsed_price
+        value_index = (score * age_factor) / parsed_price
         return value_index
     except ZeroDivisionError:
         return np.nan
@@ -358,17 +357,16 @@ def process_football_data(input_file='coff.csv', output_file='best_coff_prospect
         print("Processing Guide Value column...")
         df_processed['Guide Value Numeric'] = df_processed['Guide Value'].apply(parse_guide_value)
         
-        # Calculate COFF score for each player
+        # Calculate COFF percentile score using scoring_v2_integration
         print("Calculating COFF scores...")
-        df_processed['COFF Score'] = df_processed.apply(calculate_coff_score, axis=1)
-        
-        # Normalize the COFF scores using min-max scaling  
-        print("Normalizing COFF scores...")
-        df_processed['Normalized COFF Score'] = min_max_normalize(df_processed['COFF Score'])
+        df_processed['COFF Score'] = calculate_score_percentile(df_processed, role='coff')
         
         # Calculate value index for each player
         print("Calculating value indices...")
-        df_processed['Value Index'] = df_processed.apply(calculate_value_index, axis=1)
+        df_processed['Value Index'] = df_processed.apply(
+            lambda row: calculate_value_index(row, df_processed.loc[row.name, 'COFF Score']), 
+            axis=1
+        )
         
         # Apply additional metrics 
         print("Computing additional metrics...")
