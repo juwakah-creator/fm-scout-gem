@@ -11,7 +11,7 @@ import numpy as np
 from scout_app import detect_columns, parse_value, normalize, calculate_tactical_dimensions, age_factor
 
 # Import role-specific scoring functions
-from coff import calculate_coff_score
+from cof import calculate_cof_score
 from strika import calculate_striker_score
 from goalkeeper import calculate_goalkeeper_score
 from defensive_mid import calculate_defensive_score
@@ -88,7 +88,7 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 def process_analysis(df, min_price, price_threshold, min_apps, max_age, min_age,
-                     include_coff, include_striker, include_winger, include_defenders,
+                     include_cof, include_striker, include_winger, include_defenders,
                      include_defensive_mid, include_fullbacks, include_goalkeeper):
     """Process dataframe and analyze players based on filters.
     
@@ -99,7 +99,7 @@ def process_analysis(df, min_price, price_threshold, min_apps, max_age, min_age,
         min_apps: Minimum appearances
         max_age: Maximum age
         min_age: Minimum age
-        include_coff: Include attacking midfielders (coff)
+        include_cof: Include attacking midfielders (cof)
         include_striker: Include strikers
         include_winger: Include wingers
         include_defenders: Include defenders
@@ -138,18 +138,18 @@ def process_analysis(df, min_price, price_threshold, min_apps, max_age, min_age,
         # Calculate role-specific scores using correct coefficients
         role_scores = {}
         
-        # COFF (Attacking Mid) - calculate_coff_score from coff.py
-        if include_coff:
-            filtered_df['_coff_score'] = filtered_df.apply(calculate_coff_score, axis=1)
+        # COF (Attacking Mid) - calculate_cof_score from cof.py
+        if include_cof:
+            filtered_df['_cof_score'] = filtered_df.apply(calculate_cof_score, axis=1)
             # Add sub-scores for display
             try:
-                from coff import compute_dimension_scores
-                coff_dims = compute_dimension_scores(filtered_df)
-                for col in coff_dims.columns:
-                    filtered_df[col] = coff_dims[col]
+                from cof import compute_dimension_scores
+                cof_dims = compute_dimension_scores(filtered_df)
+                for col in cof_dims.columns:
+                    filtered_df[col] = cof_dims[col]
             except Exception as e:
-                print(f"Warning: Could not compute COFF dimension scores: {e}")
-            role_scores['COFF'] = '_coff_score'
+                print(f"Warning: Could not compute COF dimension scores: {e}")
+            role_scores['COF'] = '_cof_score'
         
         # Striker - calculate_striker_score from strika.py
         if include_striker:
@@ -279,7 +279,7 @@ def main():
         # Position filters
         st.subheader("📍 Role Filters")
         
-        include_coff = st.checkbox("Coff (Attacking Mid)", value=True)
+        include_cof = st.checkbox("CoF (Attacking Mid)", value=True)
         include_striker = st.checkbox("Striker", value=True)
         include_winger = st.checkbox("Winger", value=True)
         include_defensive_mid = st.checkbox("Defensive Mid", value=True)
@@ -301,7 +301,7 @@ def main():
         # Process analysis
         sorted_df, role_scores, info_text = process_analysis(
             df, min_price, price_threshold, min_apps, max_age, min_age,
-            include_coff, include_striker, include_winger, include_defenders,
+            include_cof, include_striker, include_winger, include_defenders,
             include_defensive_mid, include_fullbacks, include_goalkeeper
         )
         
@@ -337,8 +337,8 @@ def main():
                 display_df[display_name] = sorted_df[score_col].round(2)
         
         # Add dimension/sub-scores for roles that have them
-        # COFF dimensions
-        if include_coff:
+        # COF dimensions
+        if include_cof:
             dim_cols = ['finalizzazione_score', 'creazione_score', 'dribbling_score', 'pressing_score', 'attacco_score']
             for col in dim_cols:
                 if col in sorted_df.columns:
@@ -356,8 +356,8 @@ def main():
         # Add key advanced stats based on enabled roles - ONLY stats used in score calculations
         cm = detect_columns(df)
         
-        # COFF specific - stats used in calculate_coff_score
-        if include_coff:
+        # COF specific - stats used in calculate_cof_score
+        if include_cof:
             if 'xA per 90' in sorted_df.columns:
                 display_df['xA/90'] = sorted_df['xA per 90'].round(2)
             if 'Key Passes per 90' in sorted_df.columns:
@@ -511,8 +511,8 @@ def main():
         tabs = []
         tab_names = []
         
-        if include_coff:
-            tab_names.append("COFF")
+        if include_cof:
+            tab_names.append("COF")
         if include_striker:
             tab_names.append("Striker")
         if include_winger:
@@ -531,7 +531,7 @@ def main():
             
             tab_idx = 0
             
-            if include_coff:
+            if include_cof:
                 with tabs[tab_idx]:
                     score_col = role_scores['COFF']
                     leaderboard_df = sorted_df.sort_values(score_col, ascending=False)[['Name', 'Club', '_age', score_col]].head(20).reset_index(drop=True)

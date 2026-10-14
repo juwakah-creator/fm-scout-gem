@@ -322,7 +322,7 @@ striker_score = (
 
 ---
 
-### 7. COFF (Mediani Offensivi Creativi) - `coff.py`
+### 7. COF (Mediani Offensivi Creativi) - `cof.py`
 
 #### Metriche Creative/Playmaking (Peso Alto: 1.5-2.0x)
 | Statistica | Peso | Descrizione | Rilevanza per il Ruolo | Impatto Decisioni |
@@ -350,7 +350,7 @@ striker_score = (
 
 #### Formula Score COFF
 ```python
-coff_score = (
+cof_score = (
     # Creative metrics (pesi elevati)
     xa_p90 × 2.0 +
     key_passes_p90 × 1.8 +
@@ -409,7 +409,7 @@ coff_score = (
 ```mermaid
 graph TB
     A[app.py / streamlit_app.py] --> B[winger.py - Esterni]
-    A --> C[coff.py - Mediani Offensivi]
+    A --> C[cof.py - Mediani Offensivi]
     A --> D[strika.py - Attaccanti]
     A --> E[defenders.py - Difensori]
     A --> F[fullbacks.py - Terzini]
@@ -495,7 +495,7 @@ fm-scout-gem/
 ├── app.py                    # Applicazione principale
 ├── streamlit_app.py          # Interfaccia web Streamlit
 ├── winger.py                 # Modulo esterni d'attacco
-├── coff.py                   # Modulo mediani offensivi
+├── cof.py                    # Modulo mediani offensivi
 ├── strika.py                 # Modulo attaccanti
 ├── defenders.py              # Modulo difensori
 ├── fullbacks.py              # Modulo terzini
@@ -552,7 +552,7 @@ fm-scout-gem/
 |---|----------|--------|---------|
 | 4 | **Incoerenza pesi xG** | winger.py | calculate_offensive_score usa 2.0x, compute_dimension_scores usa 1.5x per dimensione finalizzazione |
 | 5 | **Incoerenza pesi Key Passes** | winger.py | calculate_offensive_score usa 1.5x, compute_dimension_scores usa 1.5x (ora uniforme dopo aggiornamento) |
-| 6 | **Peso xG Overperformance variabile** | winger/coff/defensive_mid | winger: 0.5x sempre, coff: 0.5x solo se >0, defensive_mid: 0.4x solo se >0 |
+| 6 | **Peso xG Overperformance variabile** | winger/cof/defensive_mid | winger: 0.5x sempre, cof: 0.5x solo se >0, defensive_mid: 0.4x solo se >0 |
 
 ### 🟢 Anomalie Minori
 | # | Problema | Modulo | Impatto |

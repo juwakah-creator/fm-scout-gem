@@ -8,11 +8,11 @@ import warnings
 warnings.filterwarnings('ignore')
 
 
-def calculate_score_percentile(df: pd.DataFrame, role: str = 'coff') -> pd.Series:
+def calculate_score_percentile(df: pd.DataFrame, role: str = 'cof') -> pd.Series:
     """Calculate percentile score for role."""
     
     WEIGHTS = {
-        'coff': [
+        'cof': [
             ('xA per 90', 2.5),
             ('Key Passes per 90', 2.0),
             ('Goal Contributions per 90', 2.0),

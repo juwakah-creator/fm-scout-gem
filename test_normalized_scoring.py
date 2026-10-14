@@ -10,7 +10,7 @@ sys.path.insert(0, '/home/jperrotta/coding/fm-scout-gem')
 
 from scoring_system import (
     percentile_normalize,
-    calculate_coff_score_normalized,
+    calculate_cof_score_normalized,
     calculate_striker_score_normalized,
     calculate_winger_score_normalized,
     calculate_defensive_mid_score_normalized,
@@ -75,25 +75,25 @@ def test_normalization():
     assert abs(normalized[4] - 100) < 5, "Last value should be ~100"
     print("✓ PASSED\n")
 
-def test_coff_scoring():
-    """Test COFF scoring with normalized stats."""
+def test_cof_scoring():
+    """Test COF scoring with normalized stats."""
     print("=" * 60)
-    print("TEST 2: COFF Score Calculation")
+    print("TEST 2: COF Score Calculation")
     print("=" * 60)
     
     df = create_sample_data(30)
     
-    # Calculate normalized COFF score
-    df['_coff_score'] = calculate_coff_score_normalized(df)
+    # Calculate normalized COF score
+    df['_cof_score'] = calculate_cof_score_normalized(df)
     
-    print(f"COFF Score range: {df['_coff_score'].min():.2f} - {df['_coff_score'].max():.2f}")
-    print(f"Average COFF Score: {df['_coff_score'].mean():.2f}")
-    print(f"Score std deviation: {df['_coff_score'].std():.2f}")
+    print(f"COF Score range: {df['_cof_score'].min():.2f} - {df['_cof_score'].max():.2f}")
+    print(f"Average COF Score: {df['_cof_score'].mean():.2f}")
+    print(f"Score std deviation: {df['_cof_score'].std():.2f}")
     
     # Verify scores are in reasonable range
-    assert df['_coff_score'].min() >= 0, "Scores should be >= 0"
-    assert df['_coff_score'].max() <= 100, "Scores should be <= 100"
-    assert not df['_coff_score'].isna().any(), "No NaN values expected"
+    assert df['_cof_score'].min() >= 0, "Scores should be >= 0"
+    assert df['_cof_score'].max() <= 100, "Scores should be <= 100"
+    assert not df['_cof_score'].isna().any(), "No NaN values expected"
     print("✓ PASSED\n")
 
 def test_age_factor():
@@ -119,12 +119,12 @@ def test_value_index():
     print("=" * 60)
     
     df = create_sample_data(50)
-    df['_coff_score'] = calculate_coff_score_normalized(df)
-    df['_value_index'] = calculate_value_index_normalized(df, '_coff_score')
+    df['_cof_score'] = calculate_cof_score_normalized(df)
+    df['_value_index'] = calculate_value_index_normalized(df, '_cof_score')
     
     print(f"Value Index range: {df['_value_index'].min():.2f} - {df['_value_index'].max():.2f}")
     print(f"Top 3 players:")
-    print(df.nlargest(3, '_value_index')[['Name', '_coff_score', '_value_index', '_price']])
+    print(df.nlargest(3, '_value_index')[['Name', '_cof_score', '_value_index', '_price']])
     
     # Verify normalization to 0-100
     assert df['_value_index'].min() >= 0, "VI should be >= 0"
@@ -141,7 +141,7 @@ def test_all_roles():
     
     # Test each role
     roles = {
-        'COFF': calculate_coff_score_normalized,
+        'COF': calculate_cof_score_normalized,
         'Striker': calculate_striker_score_normalized,
         'Winger': calculate_winger_score_normalized,
         'Defensive Mid': calculate_defensive_mid_score_normalized,
@@ -167,7 +167,7 @@ def compare_old_new():
     df = create_sample_data(100)
     
     # Old scoring (arbitrary weights)
-    df['_old_coff'] = (
+    df['_old_cof'] = (
         df['xA per 90'].fillna(0) * 2.0 +
         df['Key Passes per 90'].fillna(0) * 1.8 +
         df['Goal Contributions per 90'].fillna(0) * 2.0 +
@@ -176,17 +176,17 @@ def compare_old_new():
     )
     
     # New scoring (normalized)
-    df['_new_coff'] = calculate_coff_score_normalized(df)
+    df['_new_cof'] = calculate_cof_score_normalized(df)
     
     print("Old scoring (raw weighted):")
-    print(f"  Range: {df['_old_coff'].min():.2f} - {df['_old_coff'].max():.2f}")
-    print(f"  Mean: {df['_old_coff'].mean():.2f}")
-    print(f"  Std: {df['_old_coff'].std():.2f}")
+    print(f"  Range: {df['_old_cof'].min():.2f} - {df['_old_cof'].max():.2f}")
+    print(f"  Mean: {df['_old_cof'].mean():.2f}")
+    print(f"  Std: {df['_old_cof'].std():.2f}")
     
     print("\nNew scoring (normalized):")
-    print(f"  Range: {df['_new_coff'].min():.2f} - {df['_new_coff'].max():.2f}")
-    print(f"  Mean: {df['_new_coff'].mean():.2f}")
-    print(f"  Std: {df['_new_coff'].std():.2f}")
+    print(f"  Range: {df['_new_cof'].min():.2f} - {df['_new_cof'].max():.2f}")
+    print(f"  Mean: {df['_new_cof'].mean():.2f}")
+    print(f"  Std: {df['_new_cof'].std():.2f}")
     
     print("\nKey difference:")
     print("- Old: Pass Completion % (70-95) dominates over xA (0-0.5)")
@@ -199,7 +199,7 @@ if __name__ == '__main__':
     print("=" * 60 + "\n")
     
     test_normalization()
-    test_coff_scoring()
+    test_cof_scoring()
     test_age_factor()
     test_value_index()
     test_all_roles()

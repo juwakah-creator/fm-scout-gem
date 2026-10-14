@@ -80,7 +80,7 @@ def calculate_age_factor(age):
         return 1.0  # Older players get no bonus
 
 
-def calculate_coff_score(row):
+def calculate_cof_score(row):
     """
     Calculate a composite score with weighted metrics for attacking midfielders (COFF).
     
@@ -127,41 +127,41 @@ def calculate_coff_score(row):
     header_win_pct = pd.to_numeric(row.get('Header Win %', np.nan), errors='coerce')
     
     # Initialize score with a base value of 0
-    coff_score = 0.0
+    cof_score = 0.0
     
     # === CREATIVE WEIGHTS (elevati) ===
     if not pd.isna(xa_p90):
-        coff_score += float(xa_p90) * 2.0
+        cof_score += float(xa_p90) * 2.0
     if not pd.isna(key_passes_p90):
-        coff_score += float(key_passes_p90) * 1.8
+        cof_score += float(key_passes_p90) * 1.8
     if not pd.isna(goal_contributions_p90):
-        coff_score += float(goal_contributions_p90) * 2.0
+        cof_score += float(goal_contributions_p90) * 2.0
     if not pd.isna(passaggi_progressivi_p90):
-        coff_score += float(passaggi_progressivi_p90) * 1.6
+        cof_score += float(passaggi_progressivi_p90) * 1.6
     
     # === FINISHING WEIGHTS (moderati-elevati) ===
     if not pd.isna(xg_p90):
-        coff_score += float(xg_p90) * 1.8
+        cof_score += float(xg_p90) * 1.8
     if not pd.isna(np_xg_p90):
-        coff_score += float(np_xg_p90) * 1.2
+        cof_score += float(np_xg_p90) * 1.2
     if not pd.isna(shots_targeted_p90):
-        coff_score += float(shots_targeted_p90) * 1.0
+        cof_score += float(shots_targeted_p90) * 1.0
     if not pd.isna(dribbling_p90):
-        coff_score += float(dribbling_p90) * 1.4
+        cof_score += float(dribbling_p90) * 1.4
     
     # xG Overperformance: ridotto per evitare rumore statistico
     if not pd.isna(xg_overperformance) and xg_overperformance > 0:
-        coff_score += float(xg_overperformance) * 0.5
+        cof_score += float(xg_overperformance) * 0.5
     
     # === DEFENSIVE/PRESSING WEIGHTS (bassi) ===
     if not pd.isna(pressures_attempted_p90):
-        coff_score += float(pressures_attempted_p90) * 0.4
+        cof_score += float(pressures_attempted_p90) * 0.4
     if not pd.isna(possession_won_p90):
-        coff_score += float(possession_won_p90) * 0.3
+        cof_score += float(possession_won_p90) * 0.3
     if not pd.isna(header_win_pct):
-        coff_score += float(header_win_pct) * 0.1
+        cof_score += float(header_win_pct) * 0.1
         
-    return coff_score
+    return cof_score
 
 
 def min_max_normalize(series):
@@ -212,7 +212,7 @@ def calculate_value_index(row, score, price_threshold=5000000):
     Calculate the value index comparing attacking midfield potential to price.
     
     Value Index = (Score * Age Factor) / Price
-    Score è un punteggio percentile (0-100) da calculate_score_percentile(role='coff').
+    Score è un punteggio percentile (0-100) da calculate_score_percentile(role='cof').
     
     Args:
         row: Pandas Series containing player data
@@ -295,7 +295,7 @@ def calculate_additional_metrics(row):
     return metrics
 
 
-def process_football_data(input_file='coff.csv', output_file='best_coff_prospects.csv'):
+def process_football_data(input_file='cof.csv', output_file='best_cof_prospects.csv'):
     """
     Main function to process attacking midfielder player data
     
@@ -358,8 +358,8 @@ def process_football_data(input_file='coff.csv', output_file='best_coff_prospect
         df_processed['Guide Value Numeric'] = df_processed['Guide Value'].apply(parse_guide_value)
         
         # Calculate COFF percentile score using scoring_v2_integration
-        print("Calculating COFF scores...")
-        df_processed['COFF Score'] = calculate_score_percentile(df_processed, role='coff')
+        print("Calculating COF scores...")
+        df_processed['COF Score'] = calculate_score_percentile(df_processed, role='cof')
         
         # Calculate value index for each player
         print("Calculating value indices...")
@@ -649,15 +649,15 @@ if __name__ == "__main__":
     
     Usage examples:
     - Run with default filenames:
-        python coff.py
+        python cof.py
         
     - Process a different file:
-        python coff.py input_file.csv output_file.csv
+        python cof.py input_file.csv output_file.csv
     """
     
-    # Default filenames  
-    input_filename = "coff.csv" 
-    output_filename = "best_coff_prospects.csv"
+    # Default filenames
+    input_filename = "cof.csv"
+    output_filename = "best_cof_prospects.csv"
     
     # Check if command line arguments are provided
     if len(sys.argv) > 1:

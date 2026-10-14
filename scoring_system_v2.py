@@ -52,7 +52,7 @@ def normalize_inverted(series, scale=100):
 
 # Pesi basati su importanza tattica per ruolo (somma = ~10 per interpretabilità)
 TACTICAL_WEIGHTS = {
-    'coff': {  # Creativo offensivo
+    'cof': {  # Centrocampista offensivo
         'xA per 90': 2.5,           # Creazione pura
         'Key Passes per 90': 2.0,   # Chance create
         'Goal Contributions per 90': 2.0,  # Produttività
@@ -124,8 +124,8 @@ TACTICAL_WEIGHTS = {
 
 # ==================== FUNZIONI SCORING ====================
 
-def calculate_coff_score(df):
-    """Creative Offensive Midfielder score."""
+def calculate_cof_score(df):
+    """Centrocampista offensivo score."""
     stats = [
         ('xA per 90', 2.5),
         ('Key Passes per 90', 2.0),

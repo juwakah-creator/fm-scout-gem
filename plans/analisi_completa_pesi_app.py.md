@@ -8,7 +8,7 @@
 - `strika.py` → Attaccanti (finitura)
 - `defenders.py` → Difensori
 - `fullbacks.py` → Terzini
-- `coff.py` → Mediani offensivi creativi
+- `cof.py` → Mediani offensivi creativi
 - `goalkeeper.py` → Portieri
 
 ---
@@ -146,9 +146,9 @@ striker_score += xg_adjusted * 2.0
 
 ---
 
-### 2.6 COFF (coff.py)
+### 2.6 COF (cof.py)
 
-**Pesi implementati in `calculate_coff_score`:**
+**Pesi implementati in `calculate_cof_score`:**
 
 | Metrica | Peso | Categoria |
 |---------|------|-----------|
@@ -165,7 +165,7 @@ striker_score += xg_adjusted * 2.0
 | Possession Won per 90 | **0.3** | Difensivo basso |
 | Header Win % | **0.1** | Difensivo basso |
 
-**Integrazione in app.py:** ✅ Corretta - usa `coff.calculate_coff_score` e `coff.scale_value_index_to_100`
+**Integrazione in app.py:** ✅ Corretta - usa `cof.calculate_cof_score` e `cof.scale_value_index_to_100`
 
 ---
 
@@ -232,7 +232,7 @@ weights = {
 | `defensive_mid.calculate_age_factor()` | ≤20: 2.0, 21-23: 1.6, 24-26: 1.3, >26: 1.0 |
 | `strika.calculate_age_factor()` | ≤20: 2.0, 21-23: 1.6, 24-26: 1.3, >26: 1.0 |
 | `defenders.calculate_age_factor()` | ≤20: 2.0, 21-23: 1.6, 24-26: 1.3, >26: 1.0 |
-| `coff.calculate_age_factor()` | ≤20: 2.0, 21-23: 1.6, 24-26: 1.3, >26: 1.0 |
+| `cof.calculate_age_factor()` | ≤20: 2.0, 21-23: 1.6, 24-26: 1.3, >26: 1.0 |
 | `goalkeeper.calculate_age_factor()` | ≤20: 2.0, 21-23: 1.6, 24-26: 1.3, >26: 1.0 |
 | `fullbacks.calculate_value_index()` | **DIVERSO**: ≤23: 1.2, 24-27: 1.0, 28-30: 0.8, >30: 0.6 |
 
@@ -242,7 +242,7 @@ weights = {
 
 | Modulo | Formula Value Index |
 |--------|---------------------|
-| `winger`, `defensive_mid`, `strika`, `defenders`, `coff`, `goalkeeper` | `(score * age_factor) / price` |
+| `winger`, `defensive_mid`, `strika`, `defenders`, `cof`, `goalkeeper` | `(score * age_factor) / price` |
 | `fullbacks.calculate_value_index()` | `(score * age_factor) / price` (stessa formula, ma age_factor diverso) |
 
 **Verdetto:** La formula è la stessa, ma l'age_factor diverso in fullbacks crea risultati non comparabili.
@@ -261,7 +261,7 @@ Alcuni moduli usano `min_max_normalize()` con comportamento leggermente diverso:
 | `defensive_mid.min_max_normalize()` | Restituisce `[0.0] * len` se min == max |
 | `strika.min_max_normalize()` | Restituisce `[0.0] * len` se min == max |
 | `defenders.min_max_normalize()` | Restituisce `[0.0] * len` se min == max |
-| `coff.min_max_normalize()` | Restituisce `[0.0] * len` se min == max |
+| `cof.min_max_normalize()` | Restituisce `[0.0] * len` se min == max |
 | `goalkeeper.min_max_normalize()` | Restituisce `[0.0] * len` se min == max |
 | `fullbacks.min_max_normalize()` | **DIVERSO**: Restituisce `[0.5] * len` se min == max |
 
@@ -272,11 +272,11 @@ Alcuni moduli usano `min_max_normalize()` con comportamento leggermente diverso:
 | Modulo | Peso xG Overperformance | Condizione |
 |--------|------------------------|------------|
 | `winger` | **0.5** | Sempre (senza condizione) |
-| `coff` | **0.5** | Solo se > 0 |
+| `cof` | **0.5** | Solo se > 0 |
 | `defensive_mid` | **0.4** | Solo se > 0 |
 | `strika` | Non presente direttamente | Usata in xG_Adjusted |
 
-**Nota:** In `winger.py` la riga 159-160 applica il peso solo se `xg_overperformance > 0`, quindi è coerente con coff e defensive_mid.
+**Nota:** In `winger.py` la riga 159-160 applica il peso solo se `xg_overperformance > 0`, quindi è coerente con cof e defensive_mid.
 
 ---
 
@@ -316,7 +316,7 @@ elif "Fullback Score" in row.index:
 | 2 | Normalizzazione diversa in fullbacks.min_max_normalize() | 🟡 Media | fullbacks vs tutti gli altri |
 | 3 | Ricerca "Defender Score" invece di "Fullback Score" | 🟡 Media | fullbacks.py |
 | 4 | Funzione legacy run_scout_analysis con logica diversa | 🟢 Bassa | app.py (solo se chiamata) |
-| 5 | xG Overperformance peso variabile tra moduli | 🟢 Bassa | winger/coff/defensive_mid |
+| 5 | xG Overperformance peso variabile tra moduli | 🟢 Bassa | winger/cof/defensive_mid |
 
 ---
 
@@ -342,4 +342,4 @@ L'integrazione tra `app.py` e i moduli archetipo è **sostanzialmente corretta**
 - Comportamento normalizzazione diverso
 - Possible errore di naming
 
-Tutti gli altri moduli (winger, defensive_mid, strika, defenders, coff, goalkeeper) sono **coerenti e ben integrati** in app.py.
+Tutti gli altri moduli (winger, defensive_mid, strika, defenders, cof, goalkeeper) sono **coerenti e ben integrati** in app.py.

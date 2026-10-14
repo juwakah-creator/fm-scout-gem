@@ -6,12 +6,12 @@ import numpy as np
 import sys
 sys.path.insert(0, '.')
 
-from coff import calculate_coff_score, calculate_value_index, scale_value_index_to_100, compute_dimension_scores
+from cof import calculate_cof_score, calculate_value_index, scale_value_index_to_100, compute_dimension_scores
 
 
-def test_calculate_coff_score():
-    """Test calcolo punteggio COFF con statistiche pesate"""
-    print("\n=== TEST 1: Calculate COFF Score ===")
+def test_calculate_cof_score():
+    """Test calcolo punteggio COF con statistiche pesate"""
+    print("\n=== TEST 1: Calculate COF Score ===")
     
     row = pd.Series({
         'xA per 90': 0.3,
@@ -27,12 +27,12 @@ def test_calculate_coff_score():
         'Header Win %': 45.0,
     })
     
-    coff_score = calculate_coff_score(row)
-    print(f"COFF Score: {coff_score:.2f}")
+    cof_score = calculate_cof_score(row)
+    print(f"COF Score: {cof_score:.2f}")
     
     # Validazione
-    assert coff_score > 0, "COFF Score should be positive"
-    print("[OK] COFF Score test PASSED")
+    assert cof_score > 0, "COF Score should be positive"
+    print("[OK] COF Score test PASSED")
 
 
 def test_calculate_value_index():
@@ -155,7 +155,7 @@ def test_value_index_scaling():
 
 
 if __name__ == "__main__":
-    test_calculate_coff_score()
+    test_calculate_cof_score()
     test_calculate_value_index()
     test_scale_value_index_to_100()
     test_compute_dimension_scores()

@@ -7,7 +7,7 @@ Il sistema analizza i giocatori di Football Manager attraverso **7 moduli specia
 ```mermaid
 graph TB
     A[app.py / streamlit_app.py] --> B[winger.py - Esterni]
-    A --> C[coff.py - Mediani Offensivi]
+    A --> C[cof.py - Mediani Offensivi]
     A --> D[strika.py - Attaccanti]
     A --> E[defenders.py - Difensori]
     A --> F[fullbacks.py - Terzini]
@@ -377,7 +377,7 @@ striker_score = (
 
 ---
 
-## 8. COFF (coff.py) - Mediani Offensivi Creativi
+## 8. COF (cof.py) - Mediani Offensivi Creativi
 
 ### Statistiche Utilizzate
 
@@ -407,7 +407,7 @@ striker_score = (
 
 ### Formula Score COFF
 ```python
-coff_score = (
+cof_score = (
     # Creative metrics (pesi elevati)
     xa_p90 × 2.0 +
     key_passes_p90 × 1.8 +
@@ -473,7 +473,7 @@ coff_score = (
 |---|----------|--------|---------|
 | 4 | **Incoerenza pesi xG** | winger.py | calculate_offensive_score usa 2.0x, compute_dimension_scores usa 1.5x per dimensione finalizzazione |
 | 5 | **Incoerenza pesi Key Passes** | winger.py | calculate_offensive_score usa 1.5x, compute_dimension_scores usa 1.5x (ora uniforme dopo aggiornamento) |
-| 6 | **Peso xG Overperformance variabile** | winger/coff/defensive_mid | winger: 0.5x sempre, coff: 0.5x solo se >0, defensive_mid: 0.4x solo se >0 |
+| 6 | **Peso xG Overperformance variabile** | winger/cof/defensive_mid | winger: 0.5x sempre, cof: 0.5x solo se >0, defensive_mid: 0.4x solo se >0 |
 
 ### 🟢 Anomalie Minori
 

@@ -11,7 +11,7 @@ import numpy as np
 from scout_app import detect_columns, parse_value, normalize, calculate_tactical_dimensions, age_factor
 
 # Import role-specific scoring functions
-from coff import calculate_coff_score
+from cof import calculate_cof_score
 from strika import calculate_striker_score
 from goalkeeper import calculate_goalkeeper_score
 from defensive_mid import calculate_defensive_score
@@ -189,7 +189,7 @@ def create_app():
     
     def process_analysis(csv_file, min_price=0.0, price_threshold=200.0, 
                          min_apps=10, max_age=30, min_age=17,
-                         include_coff=True, include_striker=True,
+                         include_cof=True, include_striker=True,
                          include_winger=True, include_defenders=True,
                          include_defensive_mid=True, include_fullbacks=True,
                          include_goalkeeper=True):
@@ -202,7 +202,7 @@ def create_app():
             min_apps: Minimum appearances
             max_age: Maximum age
             min_age: Minimum age
-            include_coff: Include attacking midfielders (coff)
+            include_cof: Include attacking midfielders (cof)
             include_striker: Include strikers
             include_winger: Include wingers
             include_defenders: Include defenders
@@ -268,10 +268,10 @@ def create_app():
             # Calculate role-specific scores using correct coefficients
             role_scores = {}
             
-            # COFF (Attacking Mid) - calculate_coff_score from coff.py
-            if include_coff:
-                filtered_df['_coff_score'] = filtered_df.apply(calculate_coff_score, axis=1)
-                role_scores['coff'] = '_coff_score'
+            # COF (Attacking Mid) - calculate_cof_score from cof.py
+            if include_cof:
+                filtered_df['_cof_score'] = filtered_df.apply(calculate_cof_score, axis=1)
+                role_scores['cof'] = '_cof_score'
             
             # Striker - calculate_striker_score from strika.py
             if include_striker:
@@ -406,10 +406,10 @@ def create_app():
                 with gr.Group():
                     gr.Markdown("### 📍 Role Filters (Coefficients)")
                     
-                    # Row 1: coff and strika
+                    # Row 1: cof and strika
                     pos_row1 = gr.Row()
                     with pos_row1:
-                        pos_coff = gr.Checkbox(value=True, label="Coff (Attacking Mid)")
+                        pos_cof = gr.Checkbox(value=True, label="CoF (Attacking Mid)")
                         pos_striker = gr.Checkbox(value=True, label="Striker")
                     
                     # Row 2: winger and defensive_mid
@@ -438,7 +438,7 @@ def create_app():
         gr.Markdown("### 🏆 Statistic Leaders - Click on a table to see the top players")
         
         with gr.Row():
-            leaderboard_coff = gr.HTML(label="COFF Leaders", value="<div class='info-box info'>Click Analyze first to see COFF leaders</div>")
+            leaderboard_cof = gr.HTML(label="CoF Leaders", value="<div class='info-box info'>Click Analyze first to see CoF leaders</div>")
             leaderboard_striker = gr.HTML(label="Striker Leaders", value="<div class='info-box info'>Click Analyze first to see Striker leaders</div>")
         
         with gr.Row():
@@ -463,7 +463,7 @@ def create_app():
             
             leaderboards = {}
             role_display_names = {
-                'coff': ('COFF (Attacking Mid)', '_coff_score'),
+                'cof': ('CoF (Attacking Mid)', '_cof_score'),
                 'strika': ('Striker', '_striker_score'),
                 'winger': ('Winger', '_winger_score'),
                 'defensive_mid': ('Defensive Mid', '_dm_score'),
@@ -494,7 +494,7 @@ def create_app():
                     leaderboards[role_key] = "<div class='info-box info'>Role not enabled or no data</div>"
             
             return [
-                leaderboards.get('coff', "<div class='info-box info'>No data</div>"),
+                leaderboards.get('cof', "<div class='info-box info'>No data</div>"),
                 leaderboards.get('strika', "<div class='info-box info'>No data</div>"),
                 leaderboards.get('winger', "<div class='info-box info'>No data</div>"),
                 leaderboards.get('defensive_mid', "<div class='info-box info'>No data</div>"),
@@ -506,13 +506,13 @@ def create_app():
         analyze_btn.click(
             fn=process_analysis,
             inputs=[csv_input, min_price, price_threshold, min_apps, max_age, min_age,
-                    pos_coff, pos_striker, pos_winger, pos_defenders,
+                    pos_cof, pos_striker, pos_winger, pos_defenders,
                     pos_defensive_mid, pos_fullbacks, pos_gk],
             outputs=[result_output, debug_output, filtered_df_state, role_scores_state]
         ).then(
             fn=update_leaderboards,
             inputs=[filtered_df_state, role_scores_state],
-            outputs=[leaderboard_coff, leaderboard_striker, leaderboard_winger, 
+            outputs=[leaderboard_cof, leaderboard_striker, leaderboard_winger,
                      leaderboard_defensive_mid, leaderboard_defenders, leaderboard_fullbacks, 
                      leaderboard_goalkeeper]
         )
@@ -527,7 +527,7 @@ def create_app():
             4. **Click Analyze** - Generate the scout report
             
             ### Roles Available:
-            - **Coff**: Attacking Midfielder (coefficients from coff.py)
+            - **CoF**: Attacking Midfielder (coefficients from cof.py)
             - **Striker**: Striker (coefficients from strika.py)
             - **Winger**: Winger/Wide midfielder (coefficients from winger.py)
             - **Defensive Mid**: Defensive Midfielder (coefficients from defensive_mid.py)

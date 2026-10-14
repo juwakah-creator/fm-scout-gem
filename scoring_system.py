@@ -28,9 +28,9 @@ def percentile_normalize(series, scale=100):
     return normalized.fillna(50)
 
 
-def calculate_coff_score_normalized(df):
+def calculate_cof_score_normalized(df):
     """
-    Calculate normalized COFF score with tactical weights.
+    Calculate normalized COF score with tactical weights.
     
     Creative weights (high importance for AM):
     - xA: 2.5 (primary creative metric)
@@ -368,10 +368,10 @@ if __name__ == '__main__':
     })
     
     # Apply normalized scoring
-    test_df['_coff_score'] = calculate_coff_score_normalized(test_df)
-    test_df['_value_index'] = calculate_value_index_normalized(test_df, '_coff_score')
+    test_df['_cof_score'] = calculate_cof_score_normalized(test_df)
+    test_df['_value_index'] = calculate_value_index_normalized(test_df, '_cof_score')
     
     print("Top 5 players by Value Index:")
-    print(test_df.nlargest(5, '_value_index')[['Name', 'xA per 90', 'Key Passes per 90', 'Goal Contributions per 90', '_coff_score', '_value_index']])
-    print(f"\nScore range: {test_df['_coff_score'].min():.2f} - {test_df['_coff_score'].max():.2f}")
+    print(test_df.nlargest(5, '_value_index')[['Name', 'xA per 90', 'Key Passes per 90', 'Goal Contributions per 90', '_cof_score', '_value_index']])
+    print(f"\nScore range: {test_df['_cof_score'].min():.2f} - {test_df['_cof_score'].max():.2f}")
     print(f"VI range: {test_df['_value_index'].min():.2f} - {test_df['_value_index'].max():.2f}")
